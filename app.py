@@ -2,9 +2,7 @@ from flask import Flask, render_template
 
 app = Flask(__name__)
 
-# ============================================================
 # DATOS DE EJEMPLO
-# ============================================================
 
 EQUIPOS = [
     {'nombre': 'Generador Diésel', 'capacidad': '20 kW', 'precio': '$150', 'disponible': True},
@@ -37,9 +35,7 @@ FACTURAS = [
     {'numero': 'FAC-004', 'cliente': 'Ana Torres', 'equipo': 'Generador 100kW', 'inicio': '2026-07-12', 'fin': '2026-07-19', 'total': '$3,150'}
 ]
 
-# ============================================================
 # RUTAS
-# ============================================================
 
 @app.route('/')
 def index():
@@ -61,9 +57,7 @@ def proveedores():
 def facturacion():
     return render_template('facturacion.html', facturas=FACTURAS)
 
-# ============================================================
 # EJECUCIÓN
-# ============================================================
 
 if __name__ == '__main__':
     app.run(debug=True)
