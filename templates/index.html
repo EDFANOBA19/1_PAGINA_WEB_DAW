@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - Maquirenthal{% endblock %}
+
+{% block content %}
+
+<!-- INICIO -->
+<section class="mb-5">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h2 class="text-primary">Bienvenidos a Maquirenthal</h2>
+            <p class="lead">Especialistas en el alquiler de equipos para generación de energía y apoyo industrial.</p>
+            <p class="text-justificado">
+                Con más de <strong>3 años de experiencia</strong>, ofrecemos soluciones confiables y eficientes para empresas,
+                proyectos industriales, eventos y operaciones del sector petrolero.
+            </p>
+            <a href="{{ url_for('productos') }}" class="btn btn-primary">Ver Productos</a>
+        </div>
+        <div class="col-md-4 text-center">
+            <img src="{{ url_for('static', filename='img/generadores.jpeg') }}" 
+                 alt="Equipos Maquirenthal" 
+                 class="img-fluid rounded shadow" />
+        </div>
+    </div>
+</section>
+
+<!-- QUIÉNES SOMOS -->
+<section class="mb-5">
+    <h2 class="text-primary text-center mb-4">Quiénes Somos</h2>
+    <div class="row g-4 align-items-center">
+        <div class="col-md-6">
+            <img src="{{ url_for('static', filename='img/generadores.jpeg') }}" 
+                 alt="Equipos Maquirenthal" 
+                 class="img-fluid rounded shadow" />
+        </div>
+        <div class="col-md-6">
+            <h3>Comprometidos con la Calidad</h3>
+            <p class="text-justificado">Maquirenthal es una empresa ecuatoriana con 3 años de trayectoria dedicada al alquiler de generadores eléctricos, torres de iluminación y compresores de aire.</p>
+            <p class="text-justificado">Disponemos de equipos de distintas capacidades para adaptarnos a las necesidades de cada cliente.</p>
+        </div>
+    </div>
+</section>
+
+<!-- SERVICIOS -->
+<section class="mb-5">
+    <h2 class="text-primary text-center mb-4">Servicios y Equipos</h2>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% set servicios = [
+            ('⚡ Generadores Eléctricos', 'Alquiler de generadores de todas las capacidades.'),
+            ('💡 Torres de Iluminación', 'Iluminación profesional para proyectos y eventos.'),
+            ('🛠️ Compresores de Aire', 'Equipos de alta eficiencia para aplicaciones industriales.'),
+            ('🔧 Asesoría Técnica', 'Soporte especializado para la selección de equipos.'),
+            ('🚚 Entrega y Retiro', 'Servicio de logística para entrega y retiro de equipos.'),
+            ('🔄 Mantenimiento Preventivo', 'Mantenimiento regular de todos nuestros equipos.')
+        ] %}
+        {% for titulo, descripcion in servicios %}
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ titulo }}</h5>
+                    <p class="card-text text-justificado">{{ descripcion }}</p>
+                    <a href="{{ url_for('productos') }}" class="btn btn-primary">Ver más</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- SOLICITUDES -->
+<section class="mb-5">
+    <h2 class="text-primary text-center mb-4">📋 Solicitudes de Cotización</h2>
+    
+    <div id="alertaMensaje" class="alert alert-dismissible fade show" style="display:none;">
+        <span id="alertaTexto"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="p-4 bg-white rounded shadow-sm">
+                <h3 class="h5 mb-3">📝 Nueva Solicitud</h3>
+                
+                <!-- ✅ FORMULARIO CON VALIDACIONES HTML5 -->
+                <form id="solicitudForm" novalidate>
+                    <div class="mb-3">
+                        <label for="solicitudNombre" class="form-label">Nombre completo *</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="solicitudNombre" 
+                               placeholder="Ingrese su nombre completo"
+                               required
+                               minlength="3"
+                               maxlength="50"
+                               pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+"
+                               title="Solo letras y espacios, mínimo 3 caracteres">
+                        <div class="invalid-feedback">
+                            El nombre debe tener al menos 3 caracteres y solo letras
+                        </div>
+                        <div class="valid-feedback">
+                            ✅ Nombre válido
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="solicitudEmail" class="form-label">Correo electrónico *</label>
+                        <input type="email" 
+                               class="form-control" 
+                               id="solicitudEmail" 
+                               placeholder="ejemplo@correo.com"
+                               required>
+                        <div class="invalid-feedback">
+                            Ingrese un correo electrónico válido
+                        </div>
+                        <div class="valid-feedback">
+                            ✅ Correo válido
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="solicitudCategoria" class="form-label">Categoría *</label>
+                        <select class="form-select" id="solicitudCategoria" required>
+                            <option value="">Seleccione una categoría...</option>
+                            <option value="Generadores Eléctricos">⚡ Generadores Eléctricos</option>
+                            <option value="Torres de Iluminación">💡 Torres de Iluminación</option>
+                            <option value="Compresores de Aire">🛠️ Compresores de Aire</option>
+                            <option value="Asesoría Técnica">🔧 Asesoría Técnica</option>
+                            <option value="Entrega y Retiro">🚚 Entrega y Retiro</option>
+                            <option value="Mantenimiento Preventivo">🔄 Mantenimiento Preventivo</option>
+                            <option value="Otro">📌 Otro</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Por favor seleccione una categoría
+                        </div>
+                        <div class="valid-feedback">
+                            ✅ Categoría seleccionada
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="solicitudDescripcion" class="form-label">Descripción *</label>
+                        <textarea class="form-control" 
+                                  id="solicitudDescripcion" 
+                                  rows="3" 
+                                  placeholder="Describa brevemente su requerimiento (mín. 10 caracteres)"
+                                  required
+                                  minlength="10"
+                                  maxlength="500"></textarea>
+                        <div class="invalid-feedback">
+                            La descripción debe tener al menos 10 caracteres
+                        </div>
+                        <div class="valid-feedback">
+                            ✅ Descripción válida
+                        </div>
+                        <div id="descripcionContador" class="text-muted small mt-1">
+                            <span id="caracteresActuales">0</span> / 500 caracteres
+                        </div>
+                    </div>
+                    
+                    <div id="spinnerCarga" class="d-flex justify-content-center my-3" style="display:none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <span class="ms-2">Procesando solicitud...</span>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">📤 Enviar Solicitud</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="col-lg-7">
+            <div class="p-4 bg-white rounded shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="h5 mb-0">📋 Solicitudes Registradas</h3>
+                    <span class="badge bg-primary fs-6">Total: <span id="contadorSolicitudes">0</span></span>
+                </div>
+                <ul id="listaSolicitudes" class="list-group">
+                    <li class="list-group-item text-center text-muted py-4" id="mensajeVacio">
+                        <span class="fs-5">📭</span><br>
+                        No hay solicitudes registradas aún.
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TARJETAS RECIENTES -->
+<section class="mb-5">
+    <h2 class="text-primary text-center mb-4">📊 Solicitudes Recientes</h2>
+    <p class="text-center text-muted mb-4">
+        <span id="estadoSolicitudes" class="badge bg-info"></span>
+    </p>
+    <div id="contenedorTarjetas" class="row g-4"></div>
+</section>
+
+<!-- CONTACTO -->
+<section id="contacto" class="mb-5">
+    <h2 class="text-primary text-center mb-4">Contacto</h2>
+    
+    <div id="alertaContacto" class="alert alert-dismissible fade show" style="display:none;">
+        <span id="alertaContactoTexto"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-md-5">
+            <div class="p-4 bg-light rounded shadow-sm h-100">
+                <h3>Información de Contacto</h3>
+                <p><strong>📧 Correo:</strong> hse@maquiental.net</p>
+                <p><strong>📞 Teléfono:</strong> 0981464419 / 0990937513</p>
+                <p><strong>📍 Dirección:</strong> Kilómetro 3 Vía Lago Agrio, Sector Las Capironas.</p>
+                <p><strong>🕒 Horario:</strong> Lunes a Domingo de 07:00 a 18:00.</p>
+                <hr>
+                <p><strong>🌐 Redes Sociales:</strong></p>
+                <a href="#" class="btn btn-outline-primary btn-sm me-2">Facebook</a>
+                <a href="#" class="btn btn-outline-info btn-sm">Instagram</a>
+                <p class="mt-3"><strong>📍 Ubicación:</strong></p>
+                <div class="ratio ratio-16x9">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3792.286725769156!2d-76.99775602527653!3d-0.45333899954221457!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91d7a57d341e34f1%3A0xc148f1aec1b12221!2sMAQUIRENTHAL%20-%20Alquiler%20de%20Equipos%20y%20Maquinaria%20para%20la%20Construcci%C3%B3n%20en%20El%20Coca%20Ecuador!5e1!3m2!1ses-419!2sec!4v1781316280443!5m2!1ses-419!2sec" style="border:0;" allowfullscreen loading="lazy" title="Ubicación de Maquirenthal"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="p-4 bg-white rounded shadow-sm h-100">
+                <h3>Envíanos un Mensaje</h3>
+                
+                <form id="formularioContacto" novalidate>
+                    <div class="mb-3">
+                        <label for="contactoNombre" class="form-label">Nombre completo *</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="contactoNombre" 
+                               placeholder="Tu nombre completo"
+                               required
+                               minlength="3"
+                               maxlength="50"
+                               pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+"
+                               title="Solo letras y espacios, mínimo 3 caracteres">
+                        <div class="invalid-feedback">
+                            El nombre debe tener al menos 3 caracteres y solo letras
+                        </div>
+                        <div class="valid-feedback">
+                            ✅ Nombre válido
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="contactoEmail" class="form-label">Correo electrónico *</label>
+                        <input type="email" 
+                               class="form-control" 
+                               id="contactoEmail" 
+                               placeholder="nombre@ejemplo.com"
+                               required>
+                        <div class="invalid-feedback">
+                            Ingrese un correo electrónico válido
+                        </div>
+                        <div class="valid-feedback">
+                            ✅ Correo válido
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="contactoAsunto" class="form-label">Asunto *</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="contactoAsunto" 
+                               placeholder="Motivo de tu consulta"
+                               required
+                               minlength="5"
+                               maxlength="100">
+                        <div class="invalid-feedback">
+                            El asunto debe tener al menos 5 caracteres
+                        </div>
+                        <div class="valid-feedback">
+                            ✅ Asunto válido
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="contactoMensaje" class="form-label">Mensaje *</label>
+                        <textarea class="form-control" 
+                                  id="contactoMensaje" 
+                                  rows="4" 
+                                  placeholder="Escribe tu mensaje aquí (mín. 10 caracteres)"
+                                  required
+                                  minlength="10"
+                                  maxlength="500"></textarea>
+                        <div class="invalid-feedback">
+                            El mensaje debe tener al menos 10 caracteres
+                        </div>
+                        <div class="valid-feedback">
+                            ✅ Mensaje válido
+                        </div>
+                        <div id="contactoMensajeContador" class="text-muted small mt-1">
+                            <span id="contactoCaracteresActuales">0</span> / 500 caracteres
+                        </div>
+                    </div>
+                    
+                    <div id="spinnerContacto" class="d-flex justify-content-center my-3" style="display:none;">
+                        <div class="spinner-border text-success" role="status">
+                            <span class="visually-hidden">Enviando...</span>
+                        </div>
+                        <span class="ms-2">Enviando mensaje...</span>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">📧 Enviar Mensaje</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 text-center">
+        <h3>Video Relacionado</h3>
+        <div class="ratio ratio-16x9" style="max-width: 560px; margin: 0 auto;">
+            <video controls style="width:100%; border-radius:10px;">
+                <source src="{{ url_for('static', filename='videos/MAQUIRENTHALVIDEO.mp4') }}" type="video/mp4">
+                Tu navegador no soporta el elemento de video.
+            </video>
+        </div>
+    </div>
+</section>
+
+<!-- MODAL -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Acción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="modalMensaje">¿Está seguro de registrar esta solicitud?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmarAccion">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+<!-- SCRIPT ADICIONAL PARA CONTADOR DE CARACTERES -->
+{% block extra_js %}
+<script>
+    // Contador de caracteres para descripción
+    const descripcionInput = document.getElementById('solicitudDescripcion');
+    const caracteresActuales = document.getElementById('caracteresActuales');
+    if (descripcionInput && caracteresActuales) {
+        descripcionInput.addEventListener('input', function() {
+            caracteresActuales.textContent = this.value.length;
+        });
+    }
+
+    // Contador de caracteres para contacto
+    const contactoMensajeInput = document.getElementById('contactoMensaje');
+    const contactoCaracteresActuales = document.getElementById('contactoCaracteresActuales');
+    if (contactoMensajeInput && contactoCaracteresActuales) {
+        contactoMensajeInput.addEventListener('input', function() {
+            contactoCaracteresActuales.textContent = this.value.length;
+        });
+    }
+</script>
+{% endblock %}

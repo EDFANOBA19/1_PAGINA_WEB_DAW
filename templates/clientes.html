@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Clientes{% endblock %}
+
+{% block content %}
+
+<h2 class="text-primary text-center mb-4">👥 Nuestros Clientes</h2>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-success">
+            <tr><th>Nombre</th><th>Empresa</th><th>Teléfono</th><th>Equipos</th></tr>
+        </thead>
+        <tbody>
+            {% for c in clientes %}
+            <tr>
+                <td><strong>{{ c.nombre }}</strong></td>
+                <td>{{ c.empresa }}</td>
+                <td>{{ c.telefono }}</td>
+                <td>{{ c.equipos }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="text-center mt-4">
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">⬅ Volver</a>
+    <a href="{{ url_for('productos') }}" class="btn btn-primary">📦 Productos</a>
+</div>
+
+{% endblock %}
