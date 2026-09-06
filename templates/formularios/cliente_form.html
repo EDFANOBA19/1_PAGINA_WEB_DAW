@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }} - {{ empresa|upper }}{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">{{ titulo }}</h4>
+            </div>
+            <div class="card-body">
+                
+                <!-- Mensajes Flash -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <!-- Campo: Nombre -->
+                    <div class="mb-3">
+                        {{ form.nombre.label(class="form-label fw-bold") }}
+                        {{ form.nombre(class="form-control" + (" is-invalid" if form.nombre.errors else " is-valid" if form.nombre.data else ""), placeholder="Ej: Juan Pérez") }}
+                        {% if form.nombre.errors %}
+                            <div class="invalid-feedback d-block" style="color: #dc3545;">
+                                {% for error in form.nombre.errors %}
+                                    <span>❌ {{ error }}</span><br>
+                                {% endfor %}
+                            </div>
+                        {% elif form.nombre.data %}
+                            <div class="valid-feedback d-block" style="color: #198754;">
+                                ✅ Válido
+                            </div>
+                        {% else %}
+                            <small class="text-muted">Mínimo 3 caracteres, solo letras y espacios</small>
+                        {% endif %}
+                    </div>
+
+                    <!-- Campo: Empresa -->
+                    <div class="mb-3">
+                        {{ form.empresa.label(class="form-label fw-bold") }}
+                        {{ form.empresa(class="form-control" + (" is-invalid" if form.empresa.errors else " is-valid" if form.empresa.data else ""), placeholder="Ej: Construcciones XYZ") }}
+                        {% if form.empresa.errors %}
+                            <div class="invalid-feedback d-block" style="color: #dc3545;">
+                                {% for error in form.empresa.errors %}
+                                    <span>❌ {{ error }}</span><br>
+                                {% endfor %}
+                            </div>
+                        {% elif form.empresa.data %}
+                            <div class="valid-feedback d-block" style="color: #198754;">
+                                ✅ Válido
+                            </div>
+                        {% else %}
+                            <small class="text-muted">Mínimo 2 caracteres</small>
+                        {% endif %}
+                    </div>
+
+                    <!-- Campos: Teléfono y Email -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.telefono.label(class="form-label fw-bold") }}
+                                {{ form.telefono(class="form-control" + (" is-invalid" if form.telefono.errors else " is-valid" if form.telefono.data else ""), placeholder="Ej: 0987654321") }}
+                                {% if form.telefono.errors %}
+                                    <div class="invalid-feedback d-block" style="color: #dc3545;">
+                                        {% for error in form.telefono.errors %}
+                                            <span>❌ {{ error }}</span><br>
+                                        {% endfor %}
+                                    </div>
+                                {% elif form.telefono.data %}
+                                    <div class="valid-feedback d-block" style="color: #198754;">
+                                        ✅ Válido
+                                    </div>
+                                {% else %}
+                                    <small class="text-muted">Mínimo 7 caracteres, solo números</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.email.label(class="form-label fw-bold") }}
+                                {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else " is-valid" if form.email.data else ""), placeholder="Ej: cliente@mail.com") }}
+                                {% if form.email.errors %}
+                                    <div class="invalid-feedback d-block" style="color: #dc3545;">
+                                        {% for error in form.email.errors %}
+                                            <span>❌ {{ error }}</span><br>
+                                        {% endfor %}
+                                    </div>
+                                {% elif form.email.data %}
+                                    <div class="valid-feedback d-block" style="color: #198754;">
+                                        ✅ Válido
+                                    </div>
+                                {% else %}
+                                    <small class="text-muted">Ingrese un email válido</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Campo: Ciudad -->
+                    <div class="mb-3">
+                        {{ form.ciudad.label(class="form-label fw-bold") }}
+                        {{ form.ciudad(class="form-control" + (" is-invalid" if form.ciudad.errors else " is-valid" if form.ciudad.data else ""), placeholder="Ej: Quito") }}
+                        {% if form.ciudad.errors %}
+                            <div class="invalid-feedback d-block" style="color: #dc3545;">
+                                {% for error in form.ciudad.errors %}
+                                    <span>❌ {{ error }}</span><br>
+                                {% endfor %}
+                            </div>
+                        {% elif form.ciudad.data %}
+                            <div class="valid-feedback d-block" style="color: #198754;">
+                                ✅ Válido
+                            </div>
+                        {% else %}
+                            <small class="text-muted">Mínimo 2 caracteres, solo letras y espacios</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn btn-success") }}
+                        <a href="{{ url_for('clientes') }}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

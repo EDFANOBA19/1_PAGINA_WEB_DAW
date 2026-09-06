@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }} - {{ empresa|upper }}{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">{{ titulo }}</h4>
+            </div>
+            <div class="card-body">
+                
+                <!-- Mensajes Flash -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <!-- Campo: Número de Factura -->
+                    <div class="mb-3">
+                        {{ form.numero.label(class="form-label fw-bold") }}
+                        {{ form.numero(class="form-control" + (" is-invalid" if form.numero.errors else " is-valid" if form.numero.data else ""), placeholder="Ej: FAC-005") }}
+                        {% if form.numero.errors %}
+                            <div class="invalid-feedback d-block" style="color: #dc3545;">
+                                {% for error in form.numero.errors %}
+                                    <span>❌ {{ error }}</span><br>
+                                {% endfor %}
+                            </div>
+                        {% elif form.numero.data %}
+                            <div class="valid-feedback d-block" style="color: #198754;">
+                                ✅ Válido
+                            </div>
+                        {% else %}
+                            <small class="text-muted">Mínimo 3 caracteres, solo letras, números y guiones</small>
+                        {% endif %}
+                    </div>
+
+                    <!-- Campos: Cliente y Equipo -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.cliente.label(class="form-label fw-bold") }}
+                                {{ form.cliente(class="form-control" + (" is-invalid" if form.cliente.errors else " is-valid" if form.cliente.data else ""), placeholder="Ej: Carlos Mendoza") }}
+                                {% if form.cliente.errors %}
+                                    <div class="invalid-feedback d-block" style="color: #dc3545;">
+                                        {% for error in form.cliente.errors %}
+                                            <span>❌ {{ error }}</span><br>
+                                        {% endfor %}
+                                    </div>
+                                {% elif form.cliente.data %}
+                                    <div class="valid-feedback d-block" style="color: #198754;">
+                                        ✅ Válido
+                                    </div>
+                                {% else %}
+                                    <small class="text-muted">Mínimo 3 caracteres, solo letras</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.equipo.label(class="form-label fw-bold") }}
+                                {{ form.equipo(class="form-control" + (" is-invalid" if form.equipo.errors else " is-valid" if form.equipo.data else ""), placeholder="Ej: Generador 50kW") }}
+                                {% if form.equipo.errors %}
+                                    <div class="invalid-feedback d-block" style="color: #dc3545;">
+                                        {% for error in form.equipo.errors %}
+                                            <span>❌ {{ error }}</span><br>
+                                        {% endfor %}
+                                    </div>
+                                {% elif form.equipo.data %}
+                                    <div class="valid-feedback d-block" style="color: #198754;">
+                                        ✅ Válido
+                                    </div>
+                                {% else %}
+                                    <small class="text-muted">Mínimo 3 caracteres</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Campos: Fechas -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.inicio.label(class="form-label fw-bold") }}
+                                {{ form.inicio(class="form-control" + (" is-invalid" if form.inicio.errors else " is-valid" if form.inicio.data else ""), type="date") }}
+                                {% if form.inicio.errors %}
+                                    <div class="invalid-feedback d-block" style="color: #dc3545;">
+                                        {% for error in form.inicio.errors %}
+                                            <span>❌ {{ error }}</span><br>
+                                        {% endfor %}
+                                    </div>
+                                {% elif form.inicio.data %}
+                                    <div class="valid-feedback d-block" style="color: #198754;">
+                                        ✅ Válido
+                                    </div>
+                                {% else %}
+                                    <small class="text-muted">Seleccione la fecha de inicio</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.fin.label(class="form-label fw-bold") }}
+                                {{ form.fin(class="form-control" + (" is-invalid" if form.fin.errors else " is-valid" if form.fin.data else ""), type="date") }}
+                                {% if form.fin.errors %}
+                                    <div class="invalid-feedback d-block" style="color: #dc3545;">
+                                        {% for error in form.fin.errors %}
+                                            <span>❌ {{ error }}</span><br>
+                                        {% endfor %}
+                                    </div>
+                                {% elif form.fin.data %}
+                                    <div class="valid-feedback d-block" style="color: #198754;">
+                                        ✅ Válido
+                                    </div>
+                                {% else %}
+                                    <small class="text-muted">Seleccione la fecha de fin</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Campo: Total -->
+                    <div class="mb-3">
+                        {{ form.total.label(class="form-label fw-bold") }}
+                        {{ form.total(class="form-control" + (" is-invalid" if form.total.errors else " is-valid" if form.total.data else ""), placeholder="Ej: 1500.00", step="0.01") }}
+                        {% if form.total.errors %}
+                            <div class="invalid-feedback d-block" style="color: #dc3545;">
+                                {% for error in form.total.errors %}
+                                    <span>❌ {{ error }}</span><br>
+                                {% endfor %}
+                            </div>
+                        {% elif form.total.data %}
+                            <div class="valid-feedback d-block" style="color: #198754;">
+                                ✅ Válido
+                            </div>
+                        {% else %}
+                            <small class="text-muted">Ingrese un número mayor a 0</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn btn-danger") }}
+                        <a href="{{ url_for('facturacion') }}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
