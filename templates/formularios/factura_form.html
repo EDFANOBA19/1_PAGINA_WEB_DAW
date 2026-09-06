@@ -12,7 +12,6 @@
             </div>
             <div class="card-body">
                 
-                <!-- Mensajes Flash -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
@@ -27,7 +26,6 @@
                 <form method="POST" novalidate>
                     {{ form.hidden_tag() }}
 
-                    <!-- Campo: Número de Factura -->
                     <div class="mb-3">
                         {{ form.numero.label(class="form-label fw-bold") }}
                         {{ form.numero(class="form-control" + (" is-invalid" if form.numero.errors else " is-valid" if form.numero.data else ""), placeholder="Ej: FAC-005") }}
@@ -46,7 +44,6 @@
                         {% endif %}
                     </div>
 
-                    <!-- Campos: Cliente y Equipo -->
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -88,7 +85,6 @@
                         </div>
                     </div>
 
-                    <!-- Campos: Fechas -->
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -130,7 +126,6 @@
                         </div>
                     </div>
 
-                    <!-- Campo: Total -->
                     <div class="mb-3">
                         {{ form.total.label(class="form-label fw-bold") }}
                         {{ form.total(class="form-control" + (" is-invalid" if form.total.errors else " is-valid" if form.total.data else ""), placeholder="Ej: 1500.00", step="0.01") }}

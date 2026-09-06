@@ -41,20 +41,20 @@
             {% for eq in equipos %}
             <tr>
                 <td>{{ loop.index }}</td>
-                <td><strong>{{ eq.nombre }}</strong></td>
-                <td>{{ eq.capacidad }}</td>
-                <td>${{ eq.precio|round(2) }}</td>
-                <td>{{ eq.stock }}</td>
+                <td><strong>{{ eq['nombre'] }}</strong></td>
+                <td>{{ eq['capacidad'] }}</td>
+                <td>${{ eq['precio']|round(2) }}</td>
+                <td>{{ eq['stock'] }}</td>
                 <td>
-                    {% if eq.stock > 0 %}
+                    {% if eq['stock'] > 0 %}
                         <span class="badge bg-success">✅ Disponible</span>
                     {% else %}
                         <span class="badge bg-danger">❌ Agotado</span>
                     {% endif %}
                 </td>
                 <td class="text-center">
-                    <a href="{{ url_for('producto_editar', id=eq.id) }}" class="btn btn-warning btn-sm" title="Editar">✏️ Editar</a>
-                    <a href="{{ url_for('producto_eliminar', id=eq.id) }}" class="btn btn-danger btn-sm" title="Eliminar" onclick="return confirm('¿Eliminar este producto?')">🗑️ Eliminar</a>
+                    <a href="{{ url_for('producto_editar', id=eq['id']) }}" class="btn btn-warning btn-sm" title="Editar">✏️ Editar</a>
+                    <a href="{{ url_for('producto_eliminar', id=eq['id']) }}" class="btn btn-danger btn-sm" title="Eliminar" onclick="return confirm('¿Eliminar este producto?')">🗑️ Eliminar</a>
                 </td>
             </tr>
             {% endfor %}

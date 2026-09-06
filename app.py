@@ -1,6 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, flash, request
-from flask_wtf.csrf import CSRFProtect
-from datetime import datetime # <--- CAMBIO 1: Importación necesaria para manejar fechas
+import sqlite3
+import os
+from datetime import datetime
 
 # Importar formularios
 from forms.producto_form import ProductoForm
@@ -17,25 +18,57 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'maquirenthal-secret-key-2026'
 
 # ============================================================
-# DATOS DE EJEMPLO (SIMULAN BASE DE DATOS)
+# FUNCIONES DE BASE DE DATOS
 # ============================================================
 
-EQUIPOS = [
-    {'id': 1, 'nombre': 'Generador Diésel', 'capacidad': '20 kW', 'precio': 150.00, 'stock': 8, 'categoria': 'generadores'},
-    {'id': 2, 'nombre': 'Generador Diésel', 'capacidad': '50 kW', 'precio': 280.00, 'stock': 5, 'categoria': 'generadores'},
-    {'id': 3, 'nombre': 'Generador Diésel', 'capacidad': '100 kW', 'precio': 450.00, 'stock': 0, 'categoria': 'generadores'},
-    {'id': 4, 'nombre': 'Torre de Iluminación', 'capacidad': '4x1000W', 'precio': 120.00, 'stock': 10, 'categoria': 'iluminacion'},
-    {'id': 5, 'nombre': 'Torre de Iluminación', 'capacidad': '4x1500W', 'precio': 180.00, 'stock': 3, 'categoria': 'iluminacion'},
-    {'id': 6, 'nombre': 'Compresor de Aire', 'capacidad': '150 CFM', 'precio': 200.00, 'stock': 6, 'categoria': 'compresores'},
-    {'id': 7, 'nombre': 'Compresor de Aire', 'capacidad': '300 CFM', 'precio': 350.00, 'stock': 0, 'categoria': 'compresores'}
-]
+def get_db():
+    """Establece conexión con la base de datos SQLite"""
+    os.makedirs('data', exist_ok=True)
+    conn = sqlite3.connect('data/maquirenthal.db')
+    conn.row_factory = sqlite3.Row
+    return conn
 
-CLIENTES = [
-    {'id': 1, 'nombre': 'Carlos Mendoza', 'empresa': 'Construcciones Mendoza', 'telefono': '0987654321', 'email': 'carlos@mail.com', 'ciudad': 'Quito'},
-    {'id': 2, 'nombre': 'María Fernández', 'empresa': 'Eventos Luz y Sonido', 'telefono': '0976543210', 'email': 'maria@mail.com', 'ciudad': 'Guayaquil'},
-    {'id': 3, 'nombre': 'José Ramírez', 'empresa': 'Petrolera Amazonas', 'telefono': '0965432109', 'email': 'jose@mail.com', 'ciudad': 'Lago Agrio'},
-    {'id': 4, 'nombre': 'Ana Torres', 'empresa': 'Energía del Sur', 'telefono': '0954321098', 'email': 'ana@mail.com', 'ciudad': 'Cuenca'}
-]
+def init_db():
+    """Crea las tablas si no existen"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Tabla de productos
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS productos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            capacidad TEXT NOT NULL,
+            precio REAL NOT NULL,
+            stock INTEGER NOT NULL,
+            categoria TEXT NOT NULL
+        )
+    ''')
+
+    # Tabla de clientes
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS clientes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            empresa TEXT NOT NULL,
+            telefono TEXT NOT NULL,
+            email TEXT NOT NULL,
+            ciudad TEXT NOT NULL
+        )
+    ''')
+
+    conn.commit()
+    conn.close()
+    print("✅ Base de datos 'maquirenthal.db' creada correctamente")
+    print("✅ Tabla 'productos' creada correctamente")
+    print("✅ Tabla 'clientes' creada correctamente")
+
+# Inicializar la base de datos al iniciar la aplicación
+init_db()
+
+# ============================================================
+# DATOS DE EJEMPLO (PROVEEDORES, FACTURAS - EN MEMORIA)
+# ============================================================
 
 PROVEEDORES = [
     {'id': 1, 'nombre': 'Caterpillar', 'especialidad': 'Generadores', 'contacto': 'ventas@cat.com', 'telefono': '123456789', 'pais': 'EE.UU.'},
@@ -59,16 +92,7 @@ NOMBRE_EMPRESA = "maquirenthal"
 ANIO_FUNDACION = 2023
 
 # ============================================================
-# FUNCIÓN PARA OBTENER SIGUIENTE ID
-# ============================================================
-
-def obtener_siguiente_id(lista):
-    if not lista:
-        return 1
-    return max(item['id'] for item in lista) + 1
-
-# ============================================================
-# RUTAS PRINCIPALES (SEMANA 9 y 10)
+# RUTAS PRINCIPALES
 # ============================================================
 
 @app.route('/')
@@ -76,17 +100,6 @@ def index():
     return render_template('index.html', 
                           empresa=NOMBRE_EMPRESA.upper(),
                           anio=ANIO_FUNDACION)
-
-@app.route('/productos')
-def productos():
-    return render_template('productos.html', 
-                          equipos=EQUIPOS,
-                          empresa=NOMBRE_EMPRESA)
-
-@app.route('/clientes')
-def clientes():
-    return render_template('clientes.html', 
-                          clientes=CLIENTES)
 
 @app.route('/proveedores')
 def proveedores():
@@ -99,22 +112,33 @@ def facturacion():
                           facturas=FACTURAS)
 
 # ============================================================
-# CRUD - PRODUCTOS
+# CRUD - PRODUCTOS (CON SQLITE)
 # ============================================================
+
+@app.route('/productos')
+def productos():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM productos ORDER BY id DESC')
+    equipos = cursor.fetchall()
+    conn.close()
+    return render_template('productos.html', 
+                          equipos=equipos,
+                          empresa=NOMBRE_EMPRESA)
 
 @app.route('/productos/nuevo', methods=['GET', 'POST'])
 def producto_nuevo():
     form = ProductoForm()
     if form.validate_on_submit():
-        nuevo_id = obtener_siguiente_id(EQUIPOS)
-        EQUIPOS.append({
-            'id': nuevo_id,
-            'nombre': form.nombre.data,
-            'capacidad': form.capacidad.data,
-            'precio': form.precio.data,
-            'stock': form.stock.data,
-            'categoria': form.categoria.data
-        })
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO productos (nombre, capacidad, precio, stock, categoria)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (form.nombre.data, form.capacidad.data, form.precio.data, 
+              form.stock.data, form.categoria.data))
+        conn.commit()
+        conn.close()
         flash('✅ Producto creado correctamente', 'success')
         return redirect(url_for('productos'))
     return render_template('formularios/producto_form.html', 
@@ -124,18 +148,28 @@ def producto_nuevo():
 
 @app.route('/productos/editar/<int:id>', methods=['GET', 'POST'])
 def producto_editar(id):
-    producto = next((p for p in EQUIPOS if p['id'] == id), None)
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM productos WHERE id = ?', (id,))
+    producto = cursor.fetchone()
+    conn.close()
+    
     if not producto:
         flash('❌ Producto no encontrado', 'danger')
         return redirect(url_for('productos'))
     
-    form = ProductoForm(data=producto)
+    form = ProductoForm(data=dict(producto))
     if form.validate_on_submit():
-        producto['nombre'] = form.nombre.data
-        producto['capacidad'] = form.capacidad.data
-        producto['precio'] = form.precio.data
-        producto['stock'] = form.stock.data
-        producto['categoria'] = form.categoria.data
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE productos 
+            SET nombre = ?, capacidad = ?, precio = ?, stock = ?, categoria = ?
+            WHERE id = ?
+        ''', (form.nombre.data, form.capacidad.data, form.precio.data, 
+              form.stock.data, form.categoria.data, id))
+        conn.commit()
+        conn.close()
         flash('✅ Producto actualizado correctamente', 'success')
         return redirect(url_for('productos'))
     
@@ -146,31 +180,44 @@ def producto_editar(id):
 
 @app.route('/productos/eliminar/<int:id>')
 def producto_eliminar(id):
-    producto = next((p for p in EQUIPOS if p['id'] == id), None)
-    if producto:
-        EQUIPOS.remove(producto)
-        flash('✅ Producto eliminado correctamente', 'success')
-    else:
-        flash('❌ Producto no encontrado', 'danger')
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM productos WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+    flash('✅ Producto eliminado correctamente', 'success')
     return redirect(url_for('productos'))
 
 # ============================================================
-# CRUD - CLIENTES
+# CRUD - CLIENTES (AHORA CON SQLITE - CORREGIDO)
 # ============================================================
+
+@app.route('/clientes')
+def clientes():
+    """Lista todos los clientes desde SQLite"""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM clientes ORDER BY id DESC')
+    lista_clientes = cursor.fetchall()
+    conn.close()
+    return render_template('clientes.html', 
+                          clientes=lista_clientes,
+                          empresa=NOMBRE_EMPRESA)
 
 @app.route('/clientes/nuevo', methods=['GET', 'POST'])
 def cliente_nuevo():
+    """Crea un nuevo cliente en SQLite"""
     form = ClienteForm()
     if form.validate_on_submit():
-        nuevo_id = obtener_siguiente_id(CLIENTES)
-        CLIENTES.append({
-            'id': nuevo_id,
-            'nombre': form.nombre.data,
-            'empresa': form.empresa.data,
-            'telefono': form.telefono.data,
-            'email': form.email.data,
-            'ciudad': form.ciudad.data
-        })
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO clientes (nombre, empresa, telefono, email, ciudad)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (form.nombre.data, form.empresa.data, form.telefono.data, 
+              form.email.data, form.ciudad.data))
+        conn.commit()
+        conn.close()
         flash('✅ Cliente creado correctamente', 'success')
         return redirect(url_for('clientes'))
     return render_template('formularios/cliente_form.html', 
@@ -180,18 +227,29 @@ def cliente_nuevo():
 
 @app.route('/clientes/editar/<int:id>', methods=['GET', 'POST'])
 def cliente_editar(id):
-    cliente = next((c for c in CLIENTES if c['id'] == id), None)
+    """Edita un cliente existente en SQLite"""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM clientes WHERE id = ?', (id,))
+    cliente = cursor.fetchone()
+    conn.close()
+    
     if not cliente:
         flash('❌ Cliente no encontrado', 'danger')
         return redirect(url_for('clientes'))
     
-    form = ClienteForm(data=cliente)
+    form = ClienteForm(data=dict(cliente))
     if form.validate_on_submit():
-        cliente['nombre'] = form.nombre.data
-        cliente['empresa'] = form.empresa.data
-        cliente['telefono'] = form.telefono.data
-        cliente['email'] = form.email.data
-        cliente['ciudad'] = form.ciudad.data
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE clientes 
+            SET nombre = ?, empresa = ?, telefono = ?, email = ?, ciudad = ?
+            WHERE id = ?
+        ''', (form.nombre.data, form.empresa.data, form.telefono.data, 
+              form.email.data, form.ciudad.data, id))
+        conn.commit()
+        conn.close()
         flash('✅ Cliente actualizado correctamente', 'success')
         return redirect(url_for('clientes'))
     
@@ -202,17 +260,23 @@ def cliente_editar(id):
 
 @app.route('/clientes/eliminar/<int:id>')
 def cliente_eliminar(id):
-    cliente = next((c for c in CLIENTES if c['id'] == id), None)
-    if cliente:
-        CLIENTES.remove(cliente)
-        flash('✅ Cliente eliminado correctamente', 'success')
-    else:
-        flash('❌ Cliente no encontrado', 'danger')
+    """Elimina un cliente de SQLite"""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM clientes WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+    flash('✅ Cliente eliminado correctamente', 'success')
     return redirect(url_for('clientes'))
 
 # ============================================================
-# CRUD - PROVEEDORES
+# CRUD - PROVEEDORES (EN MEMORIA)
 # ============================================================
+
+def obtener_siguiente_id(lista):
+    if not lista:
+        return 1
+    return max(item['id'] for item in lista) + 1
 
 @app.route('/proveedores/nuevo', methods=['GET', 'POST'])
 def proveedor_nuevo():
@@ -267,7 +331,7 @@ def proveedor_eliminar(id):
     return redirect(url_for('proveedores'))
 
 # ============================================================
-# CRUD - FACTURAS (CORREGIDO)
+# CRUD - FACTURAS (EN MEMORIA)
 # ============================================================
 
 @app.route('/facturacion/nuevo', methods=['GET', 'POST'])
@@ -275,13 +339,12 @@ def factura_nueva():
     form = FacturaForm()
     if form.validate_on_submit():
         nuevo_id = obtener_siguiente_id(FACTURAS)
-        # Aquí convertimos los datetime del formulario a string para guardarlos en la lista
         FACTURAS.append({
             'id': nuevo_id,
             'numero': form.numero.data,
             'cliente': form.cliente.data,
             'equipo': form.equipo.data,
-            'inicio': form.inicio.data.strftime('%Y-%m-%d'), 
+            'inicio': form.inicio.data.strftime('%Y-%m-%d'),
             'fin': form.fin.data.strftime('%Y-%m-%d'),
             'total': form.total.data
         })
@@ -299,21 +362,17 @@ def factura_editar(id):
         flash('❌ Factura no encontrada', 'danger')
         return redirect(url_for('facturacion'))
     
-    # --- CORRECCIÓN CLAVE AQUÍ ---
-    # Hacemos una copia para no modificar el original todavía
-    factura_para_form = factura.copy() 
-    # Convertimos los strings de fecha a objetos datetime para que WTForms los entienda
+    # Convertir strings a datetime antes de pasarlos al formulario
+    factura_para_form = factura.copy()
     factura_para_form['inicio'] = datetime.strptime(factura['inicio'], '%Y-%m-%d')
     factura_para_form['fin'] = datetime.strptime(factura['fin'], '%Y-%m-%d')
     
     form = FacturaForm(data=factura_para_form)
-    # ------------------------------
-
+    
     if form.validate_on_submit():
         factura['numero'] = form.numero.data
         factura['cliente'] = form.cliente.data
         factura['equipo'] = form.equipo.data
-        # Volvemos a convertir los datetime del form a string para guardarlos
         factura['inicio'] = form.inicio.data.strftime('%Y-%m-%d')
         factura['fin'] = form.fin.data.strftime('%Y-%m-%d')
         factura['total'] = form.total.data

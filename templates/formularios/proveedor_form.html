@@ -12,7 +12,6 @@
             </div>
             <div class="card-body">
                 
-                <!-- Mensajes Flash -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
@@ -27,7 +26,6 @@
                 <form method="POST" novalidate>
                     {{ form.hidden_tag() }}
 
-                    <!-- Campo: Nombre -->
                     <div class="mb-3">
                         {{ form.nombre.label(class="form-label fw-bold") }}
                         {{ form.nombre(class="form-control" + (" is-invalid" if form.nombre.errors else " is-valid" if form.nombre.data else ""), placeholder="Ej: Caterpillar") }}
@@ -46,7 +44,6 @@
                         {% endif %}
                     </div>
 
-                    <!-- Campo: Especialidad -->
                     <div class="mb-3">
                         {{ form.especialidad.label(class="form-label fw-bold") }}
                         {{ form.especialidad(class="form-control" + (" is-invalid" if form.especialidad.errors else " is-valid" if form.especialidad.data else ""), placeholder="Ej: Generadores") }}
@@ -65,7 +62,6 @@
                         {% endif %}
                     </div>
 
-                    <!-- Campos: Contacto y Teléfono -->
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -107,7 +103,6 @@
                         </div>
                     </div>
 
-                    <!-- Campo: País -->
                     <div class="mb-3">
                         {{ form.pais.label(class="form-label fw-bold") }}
                         {{ form.pais(class="form-control" + (" is-invalid" if form.pais.errors else " is-valid" if form.pais.data else ""), placeholder="Ej: EE.UU.") }}
