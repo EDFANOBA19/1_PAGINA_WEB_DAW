@@ -1,0 +1,25 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-primary" href="{{ url_for('index') }}">Maquirenthal</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                {% set nav_items = [
+                    ('index', 'Inicio'),
+                    ('productos', 'Productos'),
+                    ('clientes', 'Clientes'),
+                    ('proveedores', 'Proveedores'),
+                    ('facturacion', 'Facturación')
+                ] %}
+                {% for endpoint, label in nav_items %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == endpoint %}active{% endif %}" 
+                       href="{{ url_for(endpoint) }}">{{ label }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</nav>

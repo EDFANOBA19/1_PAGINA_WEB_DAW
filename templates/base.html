@@ -15,6 +15,7 @@
 </head>
 <body>
 
+    <!-- HEADER -->
     <header class="custom-header">
         <div class="container">
             <h1>MAQUIRENTHAL</h1>
@@ -22,36 +23,15 @@
         </div>
     </header>
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
-        <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="{{ url_for('index') }}">Maquirenthal</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    {% set nav_items = [
-                        ('index', 'Inicio'),
-                        ('productos', 'Productos'),
-                        ('clientes', 'Clientes'),
-                        ('proveedores', 'Proveedores'),
-                        ('facturacion', 'Facturación')
-                    ] %}
-                    {% for endpoint, label in nav_items %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == endpoint %}active{% endif %}" 
-                           href="{{ url_for(endpoint) }}">{{ label }}</a>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <!-- NAVBAR -->
+    {% include 'components/navbar.html' %}
 
+    <!-- CONTENIDO PRINCIPAL -->
     <main class="container py-4">
         {% block content %}{% endblock %}
     </main>
 
+    <!-- ASIDE -->
     <aside class="container">
         <div class="custom-aside">
             <h3>Información Adicional</h3>
@@ -61,13 +41,10 @@
         </div>
     </aside>
 
-    <footer class="custom-footer">
-        <div class="container">
-            <p class="mb-0">&copy; Elaborado por: Estefania Ramon y Edwin Fabian Noriega | Tecnologías de la Información | Paralelo A | Período 2026-2026</p>
-        </div>
-    </footer>
+    <!-- FOOTER -->
+    {% include 'components/footer.html' %}
 
-    <!-- SCRIPTS - VERIFICA QUE ESTA LÍNEA ESTÉ ASÍ -->
+    <!-- SCRIPTS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     {% block extra_js %}{% endblock %}
