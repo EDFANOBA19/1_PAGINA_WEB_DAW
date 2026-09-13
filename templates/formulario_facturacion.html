@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }} - {{ empresa|upper }}{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">{{ titulo }}</h4>
+            </div>
+            <div class="card-body">
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.numero.label(class="form-label fw-bold") }}
+                        {{ form.numero(class="form-control" + (" is-invalid" if form.numero.errors else ""), placeholder="Ej: FAC-005") }}
+                        {% for error in form.numero.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.id_cliente.label(class="form-label fw-bold") }}
+                                {{ form.id_cliente(class="form-select" + (" is-invalid" if form.id_cliente.errors else "")) }}
+                                {% for error in form.id_cliente.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.equipo.label(class="form-label fw-bold") }}
+                                {{ form.equipo(class="form-control" + (" is-invalid" if form.equipo.errors else ""), placeholder="Ej: Generador 50kW") }}
+                                {% for error in form.equipo.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.inicio.label(class="form-label fw-bold") }}
+                                {{ form.inicio(class="form-control" + (" is-invalid" if form.inicio.errors else ""), type="date") }}
+                                {% for error in form.inicio.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.fin.label(class="form-label fw-bold") }}
+                                {{ form.fin(class="form-control" + (" is-invalid" if form.fin.errors else ""), type="date") }}
+                                {% for error in form.fin.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.total.label(class="form-label fw-bold") }}
+                        {{ form.total(class="form-control" + (" is-invalid" if form.total.errors else ""), placeholder="Ej: 1500.00", step="0.01") }}
+                        {% for error in form.total.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn btn-danger") }}
+                        <a href="{{ url_for('facturacion') }}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

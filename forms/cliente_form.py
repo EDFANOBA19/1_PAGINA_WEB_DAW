@@ -22,7 +22,7 @@ class ClienteForm(FlaskForm):
     
     email = StringField('Correo Electrónico', validators=[
         DataRequired(message='⚠️ El correo es obligatorio'),
-        Email(message='⚠️ Ingrese un correo electrónico válido (ejemplo@correo.com)')
+        Email(message='⚠️ Ingrese un correo electrónico válido')
     ])
     
     ciudad = StringField('Ciudad', validators=[

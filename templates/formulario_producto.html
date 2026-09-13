@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }} - {{ empresa|upper }}{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">{{ titulo }}</h4>
+            </div>
+            <div class="card-body">
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.nombre.label(class="form-label fw-bold") }}
+                        {{ form.nombre(class="form-control" + (" is-invalid" if form.nombre.errors else ""), placeholder="Ej: Generador Diésel") }}
+                        {% for error in form.nombre.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.capacidad.label(class="form-label fw-bold") }}
+                        {{ form.capacidad(class="form-control" + (" is-invalid" if form.capacidad.errors else ""), placeholder="Ej: 50 kW") }}
+                        {% for error in form.capacidad.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.precio.label(class="form-label fw-bold") }}
+                                {{ form.precio(class="form-control" + (" is-invalid" if form.precio.errors else ""), placeholder="Ej: 280.00", step="0.01") }}
+                                {% for error in form.precio.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.stock.label(class="form-label fw-bold") }}
+                                {{ form.stock(class="form-control" + (" is-invalid" if form.stock.errors else ""), placeholder="Ej: 5") }}
+                                {% for error in form.stock.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.categoria.label(class="form-label fw-bold") }}
+                                {{ form.categoria(class="form-select" + (" is-invalid" if form.categoria.errors else "")) }}
+                                {% for error in form.categoria.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.id_proveedor.label(class="form-label fw-bold") }}
+                                {{ form.id_proveedor(class="form-select" + (" is-invalid" if form.id_proveedor.errors else "")) }}
+                                {% for error in form.id_proveedor.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('productos') }}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

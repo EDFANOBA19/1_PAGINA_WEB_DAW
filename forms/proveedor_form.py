@@ -17,7 +17,7 @@ class ProveedorForm(FlaskForm):
     
     contacto = StringField('Correo de Contacto', validators=[
         DataRequired(message='⚠️ El correo es obligatorio'),
-        Email(message='⚠️ Ingrese un correo electrónico válido (ejemplo@correo.com)')
+        Email(message='⚠️ Ingrese un correo electrónico válido')
     ])
     
     telefono = StringField('Teléfono', validators=[

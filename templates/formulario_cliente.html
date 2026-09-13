@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }} - {{ empresa|upper }}{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">{{ titulo }}</h4>
+            </div>
+            <div class="card-body">
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.nombre.label(class="form-label fw-bold") }}
+                        {{ form.nombre(class="form-control" + (" is-invalid" if form.nombre.errors else ""), placeholder="Ej: Juan Pérez") }}
+                        {% for error in form.nombre.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.empresa.label(class="form-label fw-bold") }}
+                        {{ form.empresa(class="form-control" + (" is-invalid" if form.empresa.errors else ""), placeholder="Ej: Construcciones XYZ") }}
+                        {% for error in form.empresa.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.telefono.label(class="form-label fw-bold") }}
+                                {{ form.telefono(class="form-control" + (" is-invalid" if form.telefono.errors else ""), placeholder="Ej: 0987654321") }}
+                                {% for error in form.telefono.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.email.label(class="form-label fw-bold") }}
+                                {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Ej: cliente@mail.com") }}
+                                {% for error in form.email.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.ciudad.label(class="form-label fw-bold") }}
+                        {{ form.ciudad(class="form-control" + (" is-invalid" if form.ciudad.errors else ""), placeholder="Ej: Quito") }}
+                        {% for error in form.ciudad.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn btn-success") }}
+                        <a href="{{ url_for('clientes') }}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

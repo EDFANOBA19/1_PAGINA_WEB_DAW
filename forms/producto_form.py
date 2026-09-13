@@ -31,4 +31,8 @@ class ProductoForm(FlaskForm):
         ('otros', 'Otros')
     ], validators=[DataRequired(message='⚠️ Seleccione una categoría')])
     
+    id_proveedor = SelectField('Proveedor', coerce=int, validators=[
+        DataRequired(message='⚠️ Seleccione un proveedor')
+    ])
+    
     submit = SubmitField('Guardar Producto')
