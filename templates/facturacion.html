@@ -40,15 +40,15 @@
             {% for f in facturas %}
             <tr>
                 <td>{{ loop.index }}</td>
-                <td><strong>{{ f.numero }}</strong></td>
-                <td>{{ f.cliente|upper }}</td>
-                <td>{{ f.equipo }}</td>
-                <td>{{ f.inicio }}</td>
-                <td>{{ f.fin }}</td>
-                <td><span class="fw-bold text-success">${{ f.total|round(2) }}</span></td>
+                <td><strong>{{ f['numero'] }}</strong></td>
+                <td>{{ f['cliente']|upper }}</td>
+                <td>{{ f['equipo'] }}</td>
+                <td>{{ f['inicio'] }}</td>
+                <td>{{ f['fin'] }}</td>
+                <td><span class="fw-bold text-success">${{ f['total']|round(2) }}</span></td>
                 <td class="text-center">
-                    <a href="{{ url_for('factura_editar', id=f.id) }}" class="btn btn-warning btn-sm" title="Editar">✏️ Editar</a>
-                    <a href="{{ url_for('factura_eliminar', id=f.id) }}" class="btn btn-danger btn-sm" title="Eliminar" onclick="return confirm('¿Eliminar esta factura?')">🗑️ Eliminar</a>
+                    <a href="{{ url_for('factura_editar', id=f['id']) }}" class="btn btn-warning btn-sm" title="Editar">✏️ Editar</a>
+                    <a href="{{ url_for('factura_eliminar', id=f['id']) }}" class="btn btn-danger btn-sm" title="Eliminar" onclick="return confirm('¿Eliminar esta factura?')">🗑️ Eliminar</a>
                 </td>
             </tr>
             {% endfor %}

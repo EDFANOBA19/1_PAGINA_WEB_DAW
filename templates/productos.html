@@ -6,13 +6,11 @@
 
 <h2 class="text-primary text-center mb-4">📦 Equipos en Alquiler</h2>
 
-<!-- CONTADOR Y BOTÓN NUEVO -->
 <div class="d-flex justify-content-between align-items-center mb-3">
     <span class="badge bg-primary fs-6">✅ Total de Registros: {{ equipos|length }}</span>
     <a href="{{ url_for('producto_nuevo') }}" class="btn btn-success btn-sm">➕ Nuevo Producto</a>
 </div>
 
-<!-- MENSAJES FLASH -->
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
         {% for category, message in messages %}

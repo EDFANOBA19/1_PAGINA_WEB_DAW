@@ -39,14 +39,14 @@
             {% for c in clientes %}
             <tr>
                 <td>{{ loop.index }}</td>
-                <td><strong>{{ c.nombre|upper }}</strong></td>
-                <td>{{ c.empresa }}</td>
-                <td>{{ c.telefono }}</td>
-                <td>{{ c.email }}</td>
-                <td>{{ c.ciudad|title }}</td>
+                <td><strong>{{ c['nombre']|upper }}</strong></td>
+                <td>{{ c['empresa'] }}</td>
+                <td>{{ c['telefono'] }}</td>
+                <td>{{ c['email'] }}</td>
+                <td>{{ c['ciudad']|title }}</td>
                 <td class="text-center">
-                    <a href="{{ url_for('cliente_editar', id=c.id) }}" class="btn btn-warning btn-sm" title="Editar">✏️ Editar</a>
-                    <a href="{{ url_for('cliente_eliminar', id=c.id) }}" class="btn btn-danger btn-sm" title="Eliminar" onclick="return confirm('¿Eliminar este cliente?')">🗑️ Eliminar</a>
+                    <a href="{{ url_for('cliente_editar', id=c['id']) }}" class="btn btn-warning btn-sm" title="Editar">✏️ Editar</a>
+                    <a href="{{ url_for('cliente_eliminar', id=c['id']) }}" class="btn btn-danger btn-sm" title="Eliminar" onclick="return confirm('¿Eliminar este cliente?')">🗑️ Eliminar</a>
                 </td>
             </tr>
             {% endfor %}
