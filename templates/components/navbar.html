@@ -6,19 +6,21 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                {% set nav_items = [
-                    ('index', 'Inicio'),
-                    ('productos', 'Productos'),
-                    ('clientes', 'Clientes'),
-                    ('proveedores', 'Proveedores'),
-                    ('facturacion', 'Facturación')
-                ] %}
-                {% for endpoint, label in nav_items %}
+                {% if current_user.is_authenticated %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('productos') }}">Productos</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('clientes') }}">Clientes</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('proveedores') }}">Proveedores</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('facturacion') }}">Facturación</a></li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == endpoint %}active{% endif %}" 
-                       href="{{ url_for(endpoint) }}">{{ label }}</a>
+                    <span class="nav-link text-primary fw-bold">👤 {{ current_user.usuario }}</span>
                 </li>
-                {% endfor %}
+                <li class="nav-item">
+                    <a class="nav-link text-danger" href="{{ url_for('logout') }}">🔓 Cerrar Sesión</a>
+                </li>
+                {% else %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Iniciar Sesión</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('registro') }}">Registrarse</a></li>
+                {% endif %}
             </ul>
         </div>
     </div>

@@ -1,4 +1,6 @@
-from flask import Flask, render_template, redirect, url_for, flash
+from flask import Flask, render_template, redirect, url_for, flash, request
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 import mysql.connector
 
 # Importar formularios
@@ -6,9 +8,12 @@ from forms.producto_form import ProductoForm
 from forms.cliente_form import ClienteForm
 from forms.proveedor_form import ProveedorForm
 from forms.facturacion_form import FacturaForm
+from forms.login_form import LoginForm
+from forms.registro_form import RegistroForm
 
-# Importar conexión
+# Importar conexión y modelo
 from conexion.conexion import get_db_connection
+from models import Usuario
 
 app = Flask(__name__)
 
@@ -21,8 +26,31 @@ app.config['SECRET_KEY'] = 'maquirenthal-secret-key-2026'
 # Configuración de MySQL
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = '12345'  # <-- CAMBIA ESTO
+app.config['MYSQL_PASSWORD'] = '12345'  # <-- CAMBIA ESTO POR TU CONTRASEÑA
 app.config['MYSQL_DATABASE'] = 'maquirenthal_db'
+
+# ============================================================
+# CONFIGURACIÓN DE LOGIN
+# ============================================================
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = '⚠️ Debes iniciar sesión para acceder a esta página.'
+login_manager.login_message_category = 'warning'
+
+@login_manager.user_loader
+def load_user(user_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM usuarios WHERE id = %s', (user_id,))
+    data = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    if data:
+        # data[0]=id, data[1]=usuario, data[2]=email, data[3]=password
+        return Usuario(data[0], data[1], data[2], data[3])
+    return None
 
 # ============================================================
 # VARIABLES SIMPLES
@@ -36,7 +64,6 @@ ANIO_FUNDACION = 2023
 # ============================================================
 
 def obtener_proveedores():
-    """Obtiene la lista de proveedores para los selects"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute('SELECT id, nombre FROM proveedores ORDER BY nombre')
@@ -46,7 +73,6 @@ def obtener_proveedores():
     return proveedores
 
 def obtener_clientes():
-    """Obtiene la lista de clientes para los selects"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute('SELECT id, nombre FROM clientes ORDER BY nombre')
@@ -56,10 +82,88 @@ def obtener_clientes():
     return clientes
 
 # ============================================================
-# RUTAS PRINCIPALES
+# RUTAS DE AUTENTICACIÓN
+# ============================================================
+
+@app.route('/registro', methods=['GET', 'POST'])
+def registro():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    form = RegistroForm()
+    if form.validate_on_submit():
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Verificar si el usuario ya existe
+        cursor.execute('SELECT * FROM usuarios WHERE usuario = %s', (form.usuario.data,))
+        if cursor.fetchone():
+            flash('❌ El nombre de usuario ya está registrado', 'danger')
+            cursor.close()
+            conn.close()
+            return redirect(url_for('registro'))
+        
+        # Verificar si el email ya existe
+        cursor.execute('SELECT * FROM usuarios WHERE email = %s', (form.email.data,))
+        if cursor.fetchone():
+            flash('❌ El correo electrónico ya está registrado', 'danger')
+            cursor.close()
+            conn.close()
+            return redirect(url_for('registro'))
+        
+        # Cifrar contraseña e insertar
+        password_hash = generate_password_hash(form.password.data)
+        cursor.execute('INSERT INTO usuarios (usuario, email, password) VALUES (%s, %s, %s)',
+                      (form.usuario.data, form.email.data, password_hash))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        flash('✅ Usuario registrado correctamente. Ahora puedes iniciar sesión.', 'success')
+        return redirect(url_for('login'))
+    
+    return render_template('registro.html', form=form, empresa=NOMBRE_EMPRESA)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    form = LoginForm()
+    if form.validate_on_submit():
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        # Buscar por email o por usuario
+        cursor.execute('SELECT * FROM usuarios WHERE email = %s OR usuario = %s', 
+                      (form.email.data, form.email.data))
+        data = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        
+        if data and check_password_hash(data[3], form.password.data):
+            # data[0]=id, data[1]=usuario, data[2]=email, data[3]=password
+            user = Usuario(data[0], data[1], data[2], data[3])
+            login_user(user)
+            flash(f'✅ Bienvenido, {user.usuario}', 'success')
+            return redirect(url_for('index'))
+        else:
+            flash('❌ Credenciales incorrectas. Verifica tu correo y contraseña.', 'danger')
+    
+    return render_template('login.html', form=form, empresa=NOMBRE_EMPRESA)
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('✅ Sesión cerrada correctamente', 'success')
+    return redirect(url_for('login'))
+
+# ============================================================
+# RUTAS PRINCIPALES (PROTEGIDAS)
 # ============================================================
 
 @app.route('/')
+@login_required
 def index():
     return render_template('index.html', 
                           empresa=NOMBRE_EMPRESA.upper(),
@@ -70,6 +174,7 @@ def index():
 # ============================================================
 
 @app.route('/productos')
+@login_required
 def productos():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -87,6 +192,7 @@ def productos():
                           empresa=NOMBRE_EMPRESA)
 
 @app.route('/productos/nuevo', methods=['GET', 'POST'])
+@login_required
 def producto_nuevo():
     form = ProductoForm()
     form.id_proveedor.choices = [(p['id'], p['nombre']) for p in obtener_proveedores()]
@@ -110,6 +216,7 @@ def producto_nuevo():
                           empresa=NOMBRE_EMPRESA)
 
 @app.route('/productos/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
 def producto_editar(id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -146,6 +253,7 @@ def producto_editar(id):
                           empresa=NOMBRE_EMPRESA)
 
 @app.route('/productos/eliminar/<int:id>')
+@login_required
 def producto_eliminar(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -161,6 +269,7 @@ def producto_eliminar(id):
 # ============================================================
 
 @app.route('/clientes')
+@login_required
 def clientes():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -173,6 +282,7 @@ def clientes():
                           empresa=NOMBRE_EMPRESA)
 
 @app.route('/clientes/nuevo', methods=['GET', 'POST'])
+@login_required
 def cliente_nuevo():
     form = ClienteForm()
     if form.validate_on_submit():
@@ -194,6 +304,7 @@ def cliente_nuevo():
                           empresa=NOMBRE_EMPRESA)
 
 @app.route('/clientes/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
 def cliente_editar(id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -228,6 +339,7 @@ def cliente_editar(id):
                           empresa=NOMBRE_EMPRESA)
 
 @app.route('/clientes/eliminar/<int:id>')
+@login_required
 def cliente_eliminar(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -243,6 +355,7 @@ def cliente_eliminar(id):
 # ============================================================
 
 @app.route('/proveedores')
+@login_required
 def proveedores():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -255,6 +368,7 @@ def proveedores():
                           empresa=NOMBRE_EMPRESA)
 
 @app.route('/proveedores/nuevo', methods=['GET', 'POST'])
+@login_required
 def proveedor_nuevo():
     form = ProveedorForm()
     if form.validate_on_submit():
@@ -276,6 +390,7 @@ def proveedor_nuevo():
                           empresa=NOMBRE_EMPRESA)
 
 @app.route('/proveedores/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
 def proveedor_editar(id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -310,6 +425,7 @@ def proveedor_editar(id):
                           empresa=NOMBRE_EMPRESA)
 
 @app.route('/proveedores/eliminar/<int:id>')
+@login_required
 def proveedor_eliminar(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -325,6 +441,7 @@ def proveedor_eliminar(id):
 # ============================================================
 
 @app.route('/facturacion')
+@login_required
 def facturacion():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -342,6 +459,7 @@ def facturacion():
                           empresa=NOMBRE_EMPRESA)
 
 @app.route('/facturacion/nuevo', methods=['GET', 'POST'])
+@login_required
 def factura_nueva():
     form = FacturaForm()
     form.id_cliente.choices = [(c['id'], c['nombre']) for c in obtener_clientes()]
@@ -365,6 +483,7 @@ def factura_nueva():
                           empresa=NOMBRE_EMPRESA)
 
 @app.route('/facturacion/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
 def factura_editar(id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -401,6 +520,7 @@ def factura_editar(id):
                           empresa=NOMBRE_EMPRESA)
 
 @app.route('/facturacion/eliminar/<int:id>')
+@login_required
 def factura_eliminar(id):
     conn = get_db_connection()
     cursor = conn.cursor()
