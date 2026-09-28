@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}Mensajes - Maquirenthal{% endblock %}
+
+{% block content %}
+
+<h1 class="text-primary mb-4">
+    <i class="bi bi-envelope-fill"></i> Centro de Mensajes
+</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<!-- PESTAÑAS -->
+<ul class="nav nav-tabs mb-4" id="mensajesTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="contacto-tab" data-bs-toggle="tab" data-bs-target="#contacto" type="button" role="tab">
+            <i class="bi bi-envelope"></i> Mensajes de Contacto
+            <span class="badge bg-primary ms-2">{{ mensajes_contacto|length }}</span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="solicitudes-tab" data-bs-toggle="tab" data-bs-target="#solicitudes" type="button" role="tab">
+            <i class="bi bi-clipboard-check"></i> Solicitudes de Cotización
+            <span class="badge bg-success ms-2">{{ solicitudes|length }}</span>
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="mensajesTabsContent">
+    
+    <!-- TAB: MENSAJES DE CONTACTO -->
+    <div class="tab-pane fade show active" id="contacto" role="tabpanel">
+        {% if mensajes_contacto %}
+            {% for m in mensajes_contacto %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-circle"></i> {{ m.nombre }}
+                        {% if not m.leido %}
+                            <span class="badge bg-warning text-dark ms-2">🔔 Nuevo</span>
+                        {% endif %}
+                    </h5>
+                    <small>{{ m.fecha.strftime('%d/%m/%Y %H:%M') if m.fecha else 'N/A' }}</small>
+                </div>
+                <div class="card-body">
+                    <p><strong>📧 Email:</strong> {{ m.email }}</p>
+                    <p><strong>📌 Asunto:</strong> {{ m.asunto }}</p>
+                    <p><strong>💬 Mensaje:</strong></p>
+                    <div class="alert alert-light border">
+                        {{ m.mensaje }}
+                    </div>
+                    
+                    <!-- RESPUESTAS EXISTENTES -->
+                    {% if m.respuestas %}
+                    <hr>
+                    <h6 class="text-success"><i class="bi bi-reply-fill"></i> Respuestas ({{ m.respuestas|length }}):</h6>
+                    {% for r in m.respuestas %}
+                    <div class="alert alert-success">
+                        <div class="d-flex justify-content-between">
+                            <small><strong>📨 Respuesta del Admin</strong></small>
+                            <small>{{ r.fecha.strftime('%d/%m/%Y %H:%M') if r.fecha else 'N/A' }}</small>
+                        </div>
+                        <p class="mb-0 mt-2">{{ r.respuesta }}</p>
+                        <div class="text-end mt-2">
+                            <a href="{{ url_for('respuesta_eliminar', id=r.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar esta respuesta?')">
+                                <i class="bi bi-trash"></i> Eliminar respuesta
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    
+                    <!-- FORMULARIO DE RESPUESTA -->
+                    <hr>
+                    <button class="btn btn-success btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#respuesta-{{ m.id }}">
+                        <i class="bi bi-reply"></i> Responder
+                    </button>
+                    
+                    <div class="collapse mt-3" id="respuesta-{{ m.id }}">
+                        <form method="POST" action="{{ url_for('responder', tipo='contacto', id=m.id) }}">
+                            <div class="mb-2">
+                                <label class="form-label"><strong>Escribe tu respuesta:</strong></label>
+                                <textarea class="form-control" name="respuesta" rows="3" required minlength="5" maxlength="1000" placeholder="Escribe aquí tu respuesta..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-sm">
+                                <i class="bi bi-send"></i> Enviar Respuesta
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#respuesta-{{ m.id }}">
+                                Cancelar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    <div>
+                        {% if not m.leido %}
+                        <a href="{{ url_for('mensaje_leido', id=m.id) }}" class="btn btn-success btn-sm">
+                            <i class="bi bi-check-circle"></i> Marcar como leído
+                        </a>
+                        {% else %}
+                        <span class="badge bg-success">✅ Leído</span>
+                        {% endif %}
+                    </div>
+                    <a href="{{ url_for('mensaje_eliminar', id=m.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este mensaje y todas sus respuestas?')">
+                        <i class="bi bi-trash"></i> Eliminar Mensaje
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-info text-center py-5">
+                <span class="fs-1">📭</span>
+                <h5 class="mt-3">No hay mensajes de contacto</h5>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- TAB: SOLICITUDES DE COTIZACIÓN -->
+    <div class="tab-pane fade" id="solicitudes" role="tabpanel">
+        {% if solicitudes %}
+            {% for s in solicitudes %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-circle"></i> {{ s.nombre }}
+                    </h5>
+                    <small>{{ s.fecha.strftime('%d/%m/%Y %H:%M') if s.fecha else 'N/A' }}</small>
+                </div>
+                <div class="card-body">
+                    <p><strong>📧 Email:</strong> {{ s.email }}</p>
+                    <p><strong>🏷️ Categoría:</strong> <span class="badge bg-secondary">{{ s.categoria }}</span></p>
+                    <p><strong>💬 Descripción:</strong></p>
+                    <div class="alert alert-light border">
+                        {{ s.descripcion }}
+                    </div>
+                    
+                    <p><strong>📊 Estado:</strong>
+                        {% if s.estado == 'Pendiente' %}
+                            <span class="badge bg-warning text-dark">⏳ Pendiente</span>
+                        {% elif s.estado == 'Atendida' %}
+                            <span class="badge bg-success">✅ Atendida</span>
+                        {% else %}
+                            <span class="badge bg-danger">❌ Cancelada</span>
+                        {% endif %}
+                    </p>
+                    
+                    <!-- RESPUESTAS EXISTENTES -->
+                    {% if s.respuestas %}
+                    <hr>
+                    <h6 class="text-success"><i class="bi bi-reply-fill"></i> Respuestas ({{ s.respuestas|length }}):</h6>
+                    {% for r in s.respuestas %}
+                    <div class="alert alert-success">
+                        <div class="d-flex justify-content-between">
+                            <small><strong>📨 Respuesta del Admin</strong></small>
+                            <small>{{ r.fecha.strftime('%d/%m/%Y %H:%M') if r.fecha else 'N/A' }}</small>
+                        </div>
+                        <p class="mb-0 mt-2">{{ r.respuesta }}</p>
+                        <div class="text-end mt-2">
+                            <a href="{{ url_for('respuesta_eliminar', id=r.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar esta respuesta?')">
+                                <i class="bi bi-trash"></i> Eliminar respuesta
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    
+                    <!-- FORMULARIO DE RESPUESTA -->
+                    <hr>
+                    <button class="btn btn-success btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#respuesta-sol-{{ s.id }}">
+                        <i class="bi bi-reply"></i> Responder
+                    </button>
+                    
+                    <div class="collapse mt-3" id="respuesta-sol-{{ s.id }}">
+                        <form method="POST" action="{{ url_for('responder', tipo='solicitud', id=s.id) }}">
+                            <div class="mb-2">
+                                <label class="form-label"><strong>Escribe tu respuesta:</strong></label>
+                                <textarea class="form-control" name="respuesta" rows="3" required minlength="5" maxlength="1000" placeholder="Escribe aquí tu respuesta..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-sm">
+                                <i class="bi bi-send"></i> Enviar Respuesta
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#respuesta-sol-{{ s.id }}">
+                                Cancelar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    <div class="dropdown">
+                        <button class="btn btn-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-gear"></i> Cambiar Estado
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('solicitud_estado', id=s.id, estado='Pendiente') }}">⏳ Pendiente</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('solicitud_estado', id=s.id, estado='Atendida') }}">✅ Atendida</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('solicitud_estado', id=s.id, estado='Cancelada') }}">❌ Cancelada</a></li>
+                        </ul>
+                    </div>
+                    <a href="{{ url_for('solicitud_eliminar', id=s.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar esta solicitud y todas sus respuestas?')">
+                        <i class="bi bi-trash"></i> Eliminar Solicitud
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-info text-center py-5">
+                <span class="fs-1">📭</span>
+                <h5 class="mt-3">No hay solicitudes de cotización</h5>
+            </div>
+        {% endif %}
+    </div>
+    
+</div>
+
+<div class="text-center mt-4">
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Volver al Dashboard
+    </a>
+</div>
+
+{% endblock %}

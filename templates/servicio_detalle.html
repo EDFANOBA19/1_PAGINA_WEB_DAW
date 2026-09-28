@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}{{ servicio.nombre }} - {{ empresa }}{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            
+            <!-- TARJETA PRINCIPAL ÚNICA -->
+            <div class="card shadow-lg border-0 mb-4">
+                
+                <!-- ENCABEZADO CON GRADIENTE -->
+                <div class="card-header text-center py-5" style="background: linear-gradient(135deg, #0d47a1, #1976d2); color: white; border-radius: 15px 15px 0 0;">
+                    <span style="font-size: 4rem;">{{ servicio.icono }}</span>
+                    <h1 class="display-5 fw-bold mt-2">{{ servicio.nombre }}</h1>
+                    <p class="lead mb-2">{{ servicio.descripcion_corta }}</p>
+                    {% if servicio.precio_desde and servicio.precio_desde > 0 %}
+                    <span class="badge bg-warning text-dark fs-5 mt-2">
+                        💰 Desde ${{ servicio.precio_desde }} / día
+                    </span>
+                    {% endif %}
+                </div>
+                
+                <!-- CUERPO ÚNICO CON TODA LA INFORMACIÓN -->
+                <div class="card-body p-4">
+                    
+                    <!-- DESCRIPCIÓN -->
+                    <div class="mb-4">
+                        <h3 class="text-primary border-bottom pb-2">
+                            <i class="bi bi-info-circle-fill"></i> Descripción
+                        </h3>
+                        <p class="text-justificado" style="font-size: 1.1rem; line-height: 1.8;">
+                            {{ servicio.descripcion_larga }}
+                        </p>
+                    </div>
+                    
+                    <!-- CARACTERÍSTICAS -->
+                    <div class="mb-4">
+                        <h3 class="text-primary border-bottom pb-2">
+                            <i class="bi bi-gear-fill"></i> Características y Equipos
+                        </h3>
+                        <div class="row">
+                            {% for item in servicio.caracteristicas.split('|') %}
+                            <div class="col-md-6 mb-2">
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                                {{ item }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- QUÉ INCLUYE -->
+                    <div class="mb-4">
+                        <h3 class="text-primary border-bottom pb-2">
+                            <i class="bi bi-check2-square"></i> ¿Qué incluye?
+                        </h3>
+                        <div class="row">
+                            {% for item in servicio.incluye.split('|') %}
+                            <div class="col-md-6 mb-2">
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                                {{ item }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- IMAGEN -->
+                    {% if servicio.imagen %}
+                    <div class="mb-4 text-center">
+                        <img src="{{ url_for('static', filename='img/' + servicio.imagen) }}" 
+                             alt="{{ servicio.nombre }}" 
+                             class="img-fluid rounded shadow" 
+                             style="max-height: 350px;">
+                    </div>
+                    {% endif %}
+                    
+                    <!-- INFORMACIÓN ADICIONAL -->
+                    <div class="mb-4">
+                        <h3 class="text-primary border-bottom pb-2">
+                            <i class="bi bi-lightbulb-fill"></i> Información Adicional
+                        </h3>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><i class="bi bi-check text-success"></i> <strong>Mantenimiento:</strong> Incluido</p>
+                                <p><i class="bi bi-check text-success"></i> <strong>Soporte técnico:</strong> 24/7</p>
+                                <p><i class="bi bi-check text-success"></i> <strong>Entrega:</strong> En sitio</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><i class="bi bi-check text-success"></i> <strong>Documentación:</strong> En regla</p>
+                                <p><i class="bi bi-check text-success"></i> <strong>Equipos:</strong> Certificados</p>
+                                <p><i class="bi bi-check text-success"></i> <strong>Combustible:</strong> No incluido</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- CONTACTO RÁPIDO -->
+                    <div class="alert alert-success">
+                        <div class="row text-center">
+                            <div class="col-md-4">
+                                <i class="bi bi-telephone-fill"></i>
+                                <strong> Teléfonos:</strong> 0993315182 / 0985570136
+                            </div>
+                            <div class="col-md-4">
+                                <i class="bi bi-envelope-fill"></i>
+                                <strong> Correo:</strong> hse@maquirenthal.net
+                            </div>
+                            <div class="col-md-4">
+                                <i class="bi bi-clock-fill"></i>
+                                <strong> Horario:</strong> Lun-Dom 07:00-18:00
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- BOTONES -->
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('index') }}#solicitudes" class="btn btn-primary btn-lg me-2">
+                            <i class="bi bi-clipboard-check"></i> Solicitar Cotización
+                        </a>
+                        <a href="{{ url_for('index') }}#contacto" class="btn btn-success btn-lg me-2">
+                            <i class="bi bi-envelope-fill"></i> Contactar
+                        </a>
+                        <a href="{{ url_for('index') }}#servicios" class="btn btn-secondary btn-lg">
+                            <i class="bi bi-arrow-left"></i> Volver
+                        </a>
+                    </div>
+                    
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar Abono - {{ empresa|upper }}{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        
+        <!-- CARD ÚNICO CON TODO -->
+        <div class="card shadow-lg border-0">
+            
+            <!-- RESUMEN DE LA FACTURA -->
+            <div class="card-header bg-primary text-white py-3">
+                <h4 class="mb-0">💰 Registrar Abono - Factura {{ factura.numero }}</h4>
+            </div>
+            
+            <div class="card-body p-4">
+                
+                <!-- RESUMEN RÁPIDO -->
+                <div class="row text-center mb-4 p-3 bg-light rounded">
+                    <div class="col-md-4">
+                        <h6 class="text-muted mb-0">Total Factura</h6>
+                        <h4 class="text-primary mb-0">${{ "%.2f"|format(factura.total) }}</h4>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted mb-0">Total Abonado</h6>
+                        <h4 class="text-success mb-0">${{ "%.2f"|format(factura.total_abonado) }}</h4>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted mb-0">Saldo Pendiente</h6>
+                        <h4 class="text-danger mb-0">${{ "%.2f"|format(factura.saldo_pendiente) }}</h4>
+                    </div>
+                </div>
+                
+                <!-- MENSAJES FLASH -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- FORMULARIO -->
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.monto.label(class="form-label fw-bold") }}
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text">$</span>
+                            {{ form.monto(class="form-control" + (" is-invalid" if form.monto.errors else ""), placeholder="0.00", step="0.01") }}
+                            {% for error in form.monto.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle"></i> Máximo permitido: ${{ "%.2f"|format(factura.saldo_pendiente) }}
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.forma_pago.label(class="form-label fw-bold") }}
+                        {{ form.forma_pago(class="form-select form-select-lg" + (" is-invalid" if form.forma_pago.errors else "")) }}
+                        {% for error in form.forma_pago.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.referencia.label(class="form-label fw-bold") }}
+                        {{ form.referencia(class="form-control", placeholder="Ej: TRANS-001 (opcional)") }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.observaciones.label(class="form-label fw-bold") }}
+                        {{ form.observaciones(class="form-control", rows="2", placeholder="Observaciones (opcional)") }}
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn btn-success btn-lg") }}
+                        <a href="{{ url_for('factura_detalle', id=factura.id) }}" class="btn btn-secondary btn-lg">
+                            <i class="bi bi-arrow-left"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+                
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+{% endblock %}

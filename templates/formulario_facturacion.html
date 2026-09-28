@@ -5,93 +5,262 @@
 {% block content %}
 
 <div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow">
-            <div class="card-header bg-danger text-white">
+    <div class="col-md-10">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-danger text-white py-3">
                 <h4 class="mb-0">{{ titulo }}</h4>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
-                            <div class="alert alert-{{ category }} alert-dismissible fade show">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
+                            {% if 'YA EXISTE' in message %}
+                                <div class="alert alert-danger alert-dismissible fade show border-4 border-danger" role="alert">
+                                    <h4 class="alert-heading">
+                                        <i class="bi bi-exclamation-triangle-fill"></i> ¡ATENCIÓN!
+                                    </h4>
+                                    <hr>
+                                    <p class="mb-2 fs-5"><strong>{{ message }}</strong></p>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endif %}
                         {% endfor %}
                     {% endif %}
                 {% endwith %}
 
-                <form method="POST" novalidate>
+                <form method="POST" novalidate id="formFactura">
                     {{ form.hidden_tag() }}
 
+                    <!-- NÚMERO DE FACTURA -->
                     <div class="mb-3">
                         {{ form.numero.label(class="form-label fw-bold") }}
-                        {{ form.numero(class="form-control" + (" is-invalid" if form.numero.errors else ""), placeholder="Ej: FAC-005") }}
+                        <div class="input-group">
+                            {{ form.numero(class="form-control form-control-lg" + (" is-invalid" if form.numero.errors else ""), placeholder="Ej: FAC-005", maxlength="20", id="numero") }}
+                            <button type="button" class="btn btn-outline-primary" onclick="generarSiguienteNumero()">
+                                <i class="bi bi-arrow-clockwise"></i> Sugerir
+                            </button>
+                        </div>
                         {% for error in form.numero.errors %}
-                            <div class="invalid-feedback">{{ error }}</div>
+                            <div class="invalid-feedback d-block">{{ error }}</div>
                         {% endfor %}
                     </div>
 
+                    <!-- CLIENTE Y EQUIPO -->
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 {{ form.id_cliente.label(class="form-label fw-bold") }}
-                                {{ form.id_cliente(class="form-select" + (" is-invalid" if form.id_cliente.errors else "")) }}
+                                <div class="input-group">
+                                    {{ form.id_cliente(class="form-select" + (" is-invalid" if form.id_cliente.errors else "")) }}
+                                    <a href="{{ url_for('cliente_nuevo') }}" target="_blank" class="btn btn-outline-success">
+                                        <i class="bi bi-plus-circle"></i>
+                                    </a>
+                                </div>
                                 {% for error in form.id_cliente.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
                                 {% endfor %}
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                {{ form.equipo.label(class="form-label fw-bold") }}
-                                {{ form.equipo(class="form-control" + (" is-invalid" if form.equipo.errors else ""), placeholder="Ej: Generador 50kW") }}
-                                {% for error in form.equipo.errors %}
+                                {{ form.id_producto.label(class="form-label fw-bold") }}
+                                {{ form.id_producto(class="form-select" + (" is-invalid" if form.id_producto.errors else "")) }}
+                                {% for error in form.id_producto.errors %}
                                     <div class="invalid-feedback">{{ error }}</div>
                                 {% endfor %}
                             </div>
                         </div>
                     </div>
 
+                    <!-- FECHAS -->
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                {{ form.inicio.label(class="form-label fw-bold") }}
-                                {{ form.inicio(class="form-control" + (" is-invalid" if form.inicio.errors else ""), type="date") }}
-                                {% for error in form.inicio.errors %}
+                                {{ form.fecha_inicio.label(class="form-label fw-bold") }}
+                                {{ form.fecha_inicio(class="form-control" + (" is-invalid" if form.fecha_inicio.errors else ""), type="date", id="fecha_inicio") }}
+                                {% for error in form.fecha_inicio.errors %}
                                     <div class="invalid-feedback">{{ error }}</div>
                                 {% endfor %}
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                {{ form.fin.label(class="form-label fw-bold") }}
-                                {{ form.fin(class="form-control" + (" is-invalid" if form.fin.errors else ""), type="date") }}
-                                {% for error in form.fin.errors %}
+                                {{ form.fecha_fin.label(class="form-label fw-bold") }}
+                                {{ form.fecha_fin(class="form-control" + (" is-invalid" if form.fecha_fin.errors else ""), type="date", id="fecha_fin") }}
+                                {% for error in form.fecha_fin.errors %}
                                     <div class="invalid-feedback">{{ error }}</div>
                                 {% endfor %}
                             </div>
                         </div>
                     </div>
 
+                    <!-- ALERTA DE DÍAS -->
+                    <div id="alerta_dias" class="alert alert-success" style="display: none;">
+                        <i class="bi bi-calendar-check"></i>
+                        <strong>Días de alquiler:</strong> <span id="dias_calculados">0</span> días
+                    </div>
+
+                    <!-- FORMA DE PAGO -->
                     <div class="mb-3">
-                        {{ form.total.label(class="form-label fw-bold") }}
-                        {{ form.total(class="form-control" + (" is-invalid" if form.total.errors else ""), placeholder="Ej: 1500.00", step="0.01") }}
-                        {% for error in form.total.errors %}
+                        {{ form.forma_pago.label(class="form-label fw-bold") }}
+                        {{ form.forma_pago(class="form-select" + (" is-invalid" if form.forma_pago.errors else ""), id="forma_pago") }}
+                        {% for error in form.forma_pago.errors %}
                             <div class="invalid-feedback">{{ error }}</div>
                         {% endfor %}
                     </div>
 
+                    <!-- OPCIONES TARJETA DE CRÉDITO -->
+                    <div id="opciones_tarjeta" style="display: none;">
+                        <div class="alert alert-info">
+                            <i class="bi bi-credit-card"></i> <strong>Opciones de Tarjeta de Crédito</strong>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="tipo_tarjeta_input" class="form-label fw-bold">Tipo de Tarjeta</label>
+                                    <select class="form-select" id="tipo_tarjeta_input" name="tipo_tarjeta_input">
+                                        <option value="">-- Seleccione --</option>
+                                        <option value="Visa">Visa</option>
+                                        <option value="Mastercard">Mastercard</option>
+                                        <option value="American Express">American Express</option>
+                                        <option value="Diners Club">Diners Club</option>
+                                        <option value="Otra">Otra</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="meses_tarjeta_input" class="form-label fw-bold">Diferir a (meses)</label>
+                                    <input type="number" class="form-control" id="meses_tarjeta_input" name="meses_tarjeta_input" min="0" max="36" value="0">
+                                    <small class="text-muted">Máximo 36 meses (0 = sin diferir)</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- OPCIONES CRÉDITO DIRECTO -->
+                    <div id="opciones_credito" style="display: none;">
+                        <div class="alert alert-warning">
+                            <i class="bi bi-calendar-check"></i> <strong>Opciones de Crédito Directo</strong>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="meses_credito_input" class="form-label fw-bold">Diferir a (meses)</label>
+                                    <input type="number" class="form-control" id="meses_credito_input" name="meses_credito_input" min="1" max="36" value="1">
+                                    <small class="text-muted">Máximo 36 meses</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Cuota estimada</label>
+                                    <div class="alert alert-success mb-0" id="cuota_info" style="display: none;">
+                                        <strong id="valor_cuota">Se calculará al guardar</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- OBSERVACIONES -->
+                    <div class="mb-3">
+                        {{ form.observaciones.label(class="form-label fw-bold") }}
+                        {{ form.observaciones(class="form-control", rows="2", placeholder="Observaciones (opcional)", maxlength="500") }}
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Nota:</strong> El sistema calculará automáticamente los días, subtotal, IVA (15%) y total.
+                    </div>
+
                     <div class="d-flex gap-2">
-                        {{ form.submit(class="btn btn-danger") }}
-                        <a href="{{ url_for('facturacion') }}" class="btn btn-secondary">Cancelar</a>
+                        {{ form.submit(class="btn btn-danger btn-lg") }}
+                        <a href="{{ url_for('facturacion') }}" class="btn btn-secondary btn-lg">Cancelar</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const formaPago = document.getElementById('forma_pago');
+    const opcionesTarjeta = document.getElementById('opciones_tarjeta');
+    const opcionesCredito = document.getElementById('opciones_credito');
+    const mesesTarjetaInput = document.getElementById('meses_tarjeta_input');
+    const mesesCreditoInput = document.getElementById('meses_credito_input');
+    const tipoTarjetaInput = document.getElementById('tipo_tarjeta_input');
+    const fechaInicio = document.getElementById('fecha_inicio');
+    const fechaFin = document.getElementById('fecha_fin');
+    const alertaDias = document.getElementById('alerta_dias');
+    const diasCalculados = document.getElementById('dias_calculados');
+    
+    function actualizarOpciones() {
+        const valor = formaPago.value;
+        opcionesTarjeta.style.display = 'none';
+        opcionesCredito.style.display = 'none';
+        
+        // Deshabilitar todos primero
+        if (mesesTarjetaInput) mesesTarjetaInput.disabled = true;
+        if (mesesCreditoInput) mesesCreditoInput.disabled = true;
+        if (tipoTarjetaInput) tipoTarjetaInput.disabled = true;
+        
+        if (valor === 'Tarjeta de Crédito') {
+            opcionesTarjeta.style.display = 'block';
+            if (mesesTarjetaInput) mesesTarjetaInput.disabled = false;
+            if (tipoTarjetaInput) tipoTarjetaInput.disabled = false;
+        } else if (valor === 'Crédito Directo') {
+            opcionesCredito.style.display = 'block';
+            if (mesesCreditoInput) mesesCreditoInput.disabled = false;
+        }
+    }
+    
+    function calcularDias() {
+        if (fechaInicio.value && fechaFin.value) {
+            const inicio = new Date(fechaInicio.value);
+            const fin = new Date(fechaFin.value);
+            const diff = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24));
+            alertaDias.style.display = 'block';
+            if (diff > 0) {
+                diasCalculados.textContent = diff;
+                alertaDias.className = 'alert alert-success';
+                alertaDias.innerHTML = '<i class="bi bi-calendar-check"></i> <strong>Días de alquiler:</strong> ' + diff + ' días';
+            } else {
+                alertaDias.className = 'alert alert-danger';
+                alertaDias.innerHTML = '<i class="bi bi-exclamation-triangle"></i> <strong>Error:</strong> La fecha de fin debe ser mayor a la fecha de inicio';
+            }
+        }
+    }
+    
+    if (fechaInicio) fechaInicio.addEventListener('change', calcularDias);
+    if (fechaFin) fechaFin.addEventListener('change', calcularDias);
+    
+    if (formaPago) formaPago.addEventListener('change', actualizarOpciones);
+    actualizarOpciones();
+});
+
+function generarSiguienteNumero() {
+    const numeroInput = document.getElementById('numero');
+    const actual = numeroInput.value;
+    const match = actual.match(/(\d+)/);
+    let siguiente = '';
+    if (match) {
+        const num = parseInt(match[1]) + 1;
+        const prefijo = actual.replace(/\d+/, '');
+        siguiente = prefijo + String(num).padStart(match[1].length, '0');
+    } else {
+        siguiente = 'FAC-001';
+    }
+    numeroInput.value = siguiente;
+    numeroInput.focus();
+}
+</script>
 
 {% endblock %}

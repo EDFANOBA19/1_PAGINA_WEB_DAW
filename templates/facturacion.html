@@ -6,9 +6,57 @@
 
 <h2 class="text-primary text-center mb-4">💰 Facturación</h2>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <span class="badge bg-danger fs-6">✅ Total de Registros: {{ facturas|length }}</span>
-    <a href="{{ url_for('factura_nueva') }}" class="btn btn-success btn-sm">➕ Nueva Factura</a>
+<!-- BARRA DE BÚSQUEDA Y FILTROS -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label fw-bold">🔍 Buscar:</label>
+                <input type="text" class="form-control" id="buscarFactura" placeholder="Buscar por número o cliente...">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">📊 Estado:</label>
+                <select class="form-select" id="filtroEstado">
+                    <option value="">Todos los estados</option>
+                    <option value="pendiente">⏳ Pendiente</option>
+                    <option value="abonada">💰 Abonada</option>
+                    <option value="pagada">✅ Pagada</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">💳 Forma Pago:</label>
+                <select class="form-select" id="filtroFormaPago">
+                    <option value="">Todas</option>
+                    <option value="efectivo">Efectivo</option>
+                    <option value="transferencia">Transferencia</option>
+                    <option value="cheque">Cheque</option>
+                    <option value="tarjeta de crédito">Tarjeta de Crédito</option>
+                    <option value="crédito directo">Crédito Directo</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button class="btn btn-outline-secondary w-100" onclick="limpiarFiltrosFacturas()">
+                    <i class="bi bi-x-circle"></i> Limpiar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CONTADOR Y BOTONES -->
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <span class="badge bg-danger fs-6">
+        ✅ Mostrando: <span id="contadorFacturas">{{ facturas|length }}</span> de {{ facturas|length }}
+    </span>
+    <div>
+        <a href="{{ url_for('facturacion_pdf') }}" class="btn btn-danger btn-sm">
+            <i class="bi bi-file-pdf"></i> PDF
+        </a>
+        <a href="{{ url_for('facturacion_excel') }}" class="btn btn-success btn-sm">
+            <i class="bi bi-file-excel"></i> Excel
+        </a>
+        <a href="{{ url_for('factura_nueva') }}" class="btn btn-primary btn-sm">➕ Nueva Factura</a>
+    </div>
 </div>
 
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -23,32 +71,59 @@
 {% endwith %}
 
 <div class="table-responsive">
-    <table class="table table-striped table-hover">
+    <table class="table table-striped table-hover" id="tablaFacturas">
         <thead class="table-danger">
             <tr>
                 <th>#</th>
-                <th>Factura</th>
+                <th>N° Factura</th>
                 <th>Cliente</th>
                 <th>Equipo</th>
-                <th>Inicio</th>
-                <th>Fin</th>
+                <th>Período</th>
+                <th>Días</th>
                 <th>Total</th>
+                <th>Abonado</th>
+                <th>Saldo</th>
+                <th>Estado</th>
                 <th class="text-center">Acciones</th>
             </tr>
         </thead>
         <tbody>
             {% for f in facturas %}
-            <tr>
+            <tr class="fila-factura"
+                data-numero="{{ f.numero|lower }}"
+                data-cliente="{{ f.cliente_nombre|lower }}"
+                data-estado="{{ f.estado|lower }}"
+                data-forma-pago="{{ f.forma_pago|lower if f.forma_pago else '' }}">
                 <td>{{ loop.index }}</td>
                 <td><strong>{{ f.numero }}</strong></td>
-                <td>{{ f.cliente_nombre or 'Sin cliente' }}</td>
-                <td>{{ f.equipo }}</td>
-                <td>{{ f.inicio }}</td>
-                <td>{{ f.fin }}</td>
-                <td><span class="fw-bold text-success">${{ f.total|round(2) }}</span></td>
+                <td>{{ f.cliente_nombre }}</td>
+                <td>{{ f.producto_nombre or 'N/A' }}</td>
+                <td><small>{{ f.fecha_inicio }} al {{ f.fecha_fin }}</small></td>
+                <td class="text-center">{{ f.dias }}</td>
+                <td><strong class="text-primary">${{ "%.2f"|format(f.total) }}</strong></td>
+                <td><span class="text-success">${{ "%.2f"|format(f.total_abonado) }}</span></td>
+                <td><strong class="text-danger">${{ "%.2f"|format(f.saldo_pendiente) }}</strong></td>
+                <td>
+                    {% if f.estado == 'Pagada' %}
+                        <span class="badge bg-success">✅ Pagada</span>
+                    {% elif f.estado == 'Abonada' %}
+                        <span class="badge bg-warning text-dark">💰 Abonada</span>
+                    {% else %}
+                        <span class="badge bg-danger">⏳ Pendiente</span>
+                    {% endif %}
+                </td>
                 <td class="text-center">
-                    <a href="{{ url_for('factura_editar', id=f.id) }}" class="btn btn-warning btn-sm" title="Editar">✏️ Editar</a>
-                    <a href="{{ url_for('factura_eliminar', id=f.id) }}" class="btn btn-danger btn-sm" title="Eliminar" onclick="return confirm('¿Eliminar esta factura?')">🗑️ Eliminar</a>
+                    <a href="{{ url_for('factura_detalle', id=f.id) }}" class="btn btn-info btn-sm" title="Ver Detalle">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                    {% if f.estado != 'Pagada' %}
+                    <a href="{{ url_for('abono_nuevo', id=f.id) }}" class="btn btn-success btn-sm" title="Registrar Abono">
+                        <i class="bi bi-cash"></i>
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('factura_eliminar', id=f.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar esta factura y todos sus abonos?')" title="Eliminar">
+                        <i class="bi bi-trash"></i>
+                    </a>
                 </td>
             </tr>
             {% endfor %}
@@ -56,9 +131,58 @@
     </table>
 </div>
 
-<div class="text-center mt-4">
-    <a href="{{ url_for('index') }}" class="btn btn-secondary">⬅ Volver</a>
-    <a href="{{ url_for('productos') }}" class="btn btn-primary">📦 Productos</a>
+<div id="sinResultadosFacturas" class="alert alert-info text-center py-4" style="display: none;">
+    <span class="fs-1">🔍</span>
+    <h5 class="mt-2">No se encontraron facturas con esos criterios</h5>
 </div>
+
+<div class="text-center mt-4">
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">⬅ Volver al Dashboard</a>
+</div>
+
+<script>
+function filtrarFacturas() {
+    const busqueda = document.getElementById('buscarFactura').value.toLowerCase().trim();
+    const estado = document.getElementById('filtroEstado').value.toLowerCase();
+    const formaPago = document.getElementById('filtroFormaPago').value.toLowerCase();
+    
+    const filas = document.querySelectorAll('.fila-factura');
+    let visibles = 0;
+    
+    filas.forEach(function(fila) {
+        const numero = fila.dataset.numero;
+        const cliente = fila.dataset.cliente;
+        const est = fila.dataset.estado;
+        const fp = fila.dataset.formaPago;
+        
+        let mostrar = true;
+        
+        if (busqueda && !numero.includes(busqueda) && !cliente.includes(busqueda)) mostrar = false;
+        if (estado && est !== estado) mostrar = false;
+        if (formaPago && fp !== formaPago) mostrar = false;
+        
+        if (mostrar) {
+            fila.style.display = '';
+            visibles++;
+        } else {
+            fila.style.display = 'none';
+        }
+    });
+    
+    document.getElementById('contadorFacturas').textContent = visibles;
+    document.getElementById('sinResultadosFacturas').style.display = visibles === 0 ? 'block' : 'none';
+}
+
+function limpiarFiltrosFacturas() {
+    document.getElementById('buscarFactura').value = '';
+    document.getElementById('filtroEstado').value = '';
+    document.getElementById('filtroFormaPago').value = '';
+    filtrarFacturas();
+}
+
+document.getElementById('buscarFactura').addEventListener('input', filtrarFacturas);
+document.getElementById('filtroEstado').addEventListener('change', filtrarFacturas);
+document.getElementById('filtroFormaPago').addEventListener('change', filtrarFacturas);
+</script>
 
 {% endblock %}

@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Maquirenthal{% endblock %}
+
+{% block content %}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="text-primary">
+            <i class="bi bi-speedometer2"></i> Panel de Control
+        </h1>
+        <p class="lead">Bienvenido, <strong>{{ current_user.usuario }}</strong></p>
+        <hr>
+    </div>
+</div>
+
+<!-- ============================================================
+ESTADÍSTICAS PRINCIPALES
+============================================================ -->
+<div class="row g-4 mb-5">
+    
+    <!-- PRODUCTOS -->
+    <div class="col-md-4 col-lg-2">
+        <div class="card h-100 shadow-sm border-primary">
+            <div class="card-body text-center">
+                <i class="bi bi-box text-primary" style="font-size: 3rem;"></i>
+                <h2 class="text-primary mt-2 mb-0">{{ stats.total_productos }}</h2>
+                <p class="text-muted mb-3">Productos</p>
+                <a href="{{ url_for('productos') }}" class="btn btn-primary btn-sm w-100">Ver</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CLIENTES -->
+    <div class="col-md-4 col-lg-2">
+        <div class="card h-100 shadow-sm border-success">
+            <div class="card-body text-center">
+                <i class="bi bi-people text-success" style="font-size: 3rem;"></i>
+                <h2 class="text-success mt-2 mb-0">{{ stats.total_clientes }}</h2>
+                <p class="text-muted mb-3">Clientes</p>
+                <a href="{{ url_for('clientes') }}" class="btn btn-success btn-sm w-100">Ver</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- PROVEEDORES -->
+    <div class="col-md-4 col-lg-2">
+        <div class="card h-100 shadow-sm border-info">
+            <div class="card-body text-center">
+                <i class="bi bi-truck text-info" style="font-size: 3rem;"></i>
+                <h2 class="text-info mt-2 mb-0">{{ stats.total_proveedores }}</h2>
+                <p class="text-muted mb-3">Proveedores</p>
+                <a href="{{ url_for('proveedores') }}" class="btn btn-info btn-sm w-100">Ver</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FACTURAS -->
+    <div class="col-md-4 col-lg-2">
+        <div class="card h-100 shadow-sm border-danger">
+            <div class="card-body text-center">
+                <i class="bi bi-receipt text-danger" style="font-size: 3rem;"></i>
+                <h2 class="text-danger mt-2 mb-0">{{ stats.total_facturas }}</h2>
+                <p class="text-muted mb-3">Facturas</p>
+                <a href="{{ url_for('facturacion') }}" class="btn btn-danger btn-sm w-100">Ver</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MENSAJES -->
+    <div class="col-md-4 col-lg-2">
+        <div class="card h-100 shadow-sm border-warning">
+            <div class="card-body text-center">
+                <i class="bi bi-envelope text-warning" style="font-size: 3rem;"></i>
+                <h2 class="text-warning mt-2 mb-0">{{ stats.total_mensajes }}</h2>
+                <p class="text-muted mb-3">Mensajes</p>
+                <a href="{{ url_for('mensajes') }}" class="btn btn-warning btn-sm w-100">Ver</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- SOLICITUDES -->
+    <div class="col-md-4 col-lg-2">
+        <div class="card h-100 shadow-sm border-secondary">
+            <div class="card-body text-center">
+                <i class="bi bi-clipboard-check text-secondary" style="font-size: 3rem;"></i>
+                <h2 class="text-secondary mt-2 mb-0">{{ stats.total_solicitudes }}</h2>
+                <p class="text-muted mb-3">Solicitudes</p>
+                <a href="{{ url_for('mensajes') }}" class="btn btn-secondary btn-sm w-100">Ver</a>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<!-- ============================================================
+ESTADÍSTICAS DETALLADAS
+============================================================ -->
+<div class="row g-4 mb-4">
+    
+    <!-- RESUMEN DE FACTURACIÓN -->
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-currency-dollar"></i> Resumen de Facturación</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h3 class="text-danger">{{ stats.total_facturas }}</h3>
+                        <p class="text-muted">Total Facturas</p>
+                    </div>
+                    <div class="col-6">
+                        <h3 class="text-success">${{ "%.2f"|format(stats.monto_facturas) }}</h3>
+                        <p class="text-muted">Monto Total</p>
+                    </div>
+                </div>
+                <hr>
+                <a href="{{ url_for('facturacion') }}" class="btn btn-danger w-100">
+                    <i class="bi bi-receipt"></i> Ver Facturación
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- RESUMEN DE MENSAJES -->
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-envelope"></i> Resumen de Mensajes</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h3 class="text-primary">{{ stats.total_mensajes }}</h3>
+                        <p class="text-muted">Total</p>
+                    </div>
+                    <div class="col-4">
+                        <h3 class="text-warning">{{ stats.mensajes_nuevos }}</h3>
+                        <p class="text-muted">Nuevos</p>
+                    </div>
+                    <div class="col-4">
+                        <h3 class="text-success">{{ stats.mensajes_leidos }}</h3>
+                        <p class="text-muted">Leídos</p>
+                    </div>
+                </div>
+                <hr>
+                <a href="{{ url_for('mensajes') }}" class="btn btn-warning w-100">
+                    <i class="bi bi-envelope"></i> Ver Mensajes
+                </a>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<div class="row g-4 mb-4">
+    
+    <!-- RESUMEN DE SOLICITUDES -->
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-clipboard-check"></i> Resumen de Solicitudes</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h3 class="text-primary">{{ stats.total_solicitudes }}</h3>
+                        <p class="text-muted">Total</p>
+                    </div>
+                    <div class="col-4">
+                        <h3 class="text-warning">{{ stats.solicitudes_pendientes }}</h3>
+                        <p class="text-muted">Pendientes</p>
+                    </div>
+                    <div class="col-4">
+                        <h3 class="text-success">{{ stats.solicitudes_atendidas }}</h3>
+                        <p class="text-muted">Atendidas</p>
+                    </div>
+                </div>
+                <hr>
+                <a href="{{ url_for('mensajes') }}" class="btn btn-secondary w-100">
+                    <i class="bi bi-clipboard-check"></i> Ver Solicitudes
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ACCIONES RÁPIDAS -->
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-lightning-fill"></i> Acciones Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <a href="{{ url_for('producto_nuevo') }}" class="btn btn-outline-primary w-100 mb-2">
+                    <i class="bi bi-plus-circle"></i> Nuevo Producto
+                </a>
+                <a href="{{ url_for('cliente_nuevo') }}" class="btn btn-outline-success w-100 mb-2">
+                    <i class="bi bi-plus-circle"></i> Nuevo Cliente
+                </a>
+                <a href="{{ url_for('factura_nueva') }}" class="btn btn-outline-danger w-100 mb-2">
+                    <i class="bi bi-plus-circle"></i> Nueva Factura
+                </a>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                </a>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<!-- ============================================================
+INFORMACIÓN DEL USUARIO
+============================================================ -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-circle"></i> Información del Usuario</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <p><strong>Usuario:</strong> {{ current_user.usuario }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <p><strong>Email:</strong> {{ current_user.email }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <p><strong>ID:</strong> {{ current_user.id }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <p><strong>Estado:</strong> <span class="badge bg-success">Sesión activa</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

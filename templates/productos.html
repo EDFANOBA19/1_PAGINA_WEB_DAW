@@ -6,9 +6,55 @@
 
 <h2 class="text-primary text-center mb-4">📦 Equipos en Alquiler</h2>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <span class="badge bg-primary fs-6">✅ Total de Registros: {{ equipos|length }}</span>
-    <a href="{{ url_for('producto_nuevo') }}" class="btn btn-success btn-sm">➕ Nuevo Producto</a>
+<!-- BARRA DE BÚSQUEDA Y FILTROS -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label fw-bold">🔍 Buscar:</label>
+                <input type="text" class="form-control" id="buscarProducto" placeholder="Buscar por nombre o capacidad...">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">📁 Categoría:</label>
+                <select class="form-select" id="filtroCategoria">
+                    <option value="">Todas las categorías</option>
+                    <option value="generadores">Generadores</option>
+                    <option value="iluminacion">Iluminación</option>
+                    <option value="compresores">Compresores</option>
+                    <option value="otros">Otros</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">✅ Disponibilidad:</label>
+                <select class="form-select" id="filtroDisponibilidad">
+                    <option value="">Todas</option>
+                    <option value="disponible">Disponible</option>
+                    <option value="agotado">Agotado</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button class="btn btn-outline-secondary w-100" onclick="limpiarFiltrosProductos()">
+                    <i class="bi bi-x-circle"></i> Limpiar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CONTADOR Y BOTONES -->
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <span class="badge bg-primary fs-6">
+        ✅ Mostrando: <span id="contadorProductos">{{ equipos|length }}</span> de {{ equipos|length }}
+    </span>
+    <div>
+        <a href="{{ url_for('productos_pdf') }}" class="btn btn-danger btn-sm">
+            <i class="bi bi-file-pdf"></i> PDF
+        </a>
+        <a href="{{ url_for('productos_excel') }}" class="btn btn-success btn-sm">
+            <i class="bi bi-file-excel"></i> Excel
+        </a>
+        <a href="{{ url_for('producto_nuevo') }}" class="btn btn-primary btn-sm">➕ Nuevo Producto</a>
+    </div>
 </div>
 
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -23,7 +69,7 @@
 {% endwith %}
 
 <div class="table-responsive">
-    <table class="table table-striped table-hover">
+    <table class="table table-striped table-hover" id="tablaProductos">
         <thead class="table-primary">
             <tr>
                 <th>#</th>
@@ -38,7 +84,11 @@
         </thead>
         <tbody>
             {% for eq in equipos %}
-            <tr>
+            <tr class="fila-producto"
+                data-nombre="{{ eq.nombre|lower }}"
+                data-capacidad="{{ eq.capacidad|lower }}"
+                data-categoria="{{ eq.categoria|lower }}"
+                data-disponible="{{ 'disponible' if eq.stock > 0 else 'agotado' }}">
                 <td>{{ loop.index }}</td>
                 <td><strong>{{ eq.nombre }}</strong></td>
                 <td>{{ eq.capacidad }}</td>
@@ -53,8 +103,8 @@
                     {% endif %}
                 </td>
                 <td class="text-center">
-                    <a href="{{ url_for('producto_editar', id=eq.id_producto) }}" class="btn btn-warning btn-sm" title="Editar">✏️ Editar</a>
-                    <a href="{{ url_for('producto_eliminar', id=eq.id_producto) }}" class="btn btn-danger btn-sm" title="Eliminar" onclick="return confirm('¿Eliminar este producto?')">🗑️ Eliminar</a>
+                    <a href="{{ url_for('producto_editar', id=eq.id_producto) }}" class="btn btn-warning btn-sm" title="Editar">✏️</a>
+                    <a href="{{ url_for('producto_eliminar', id=eq.id_producto) }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este producto?')" title="Eliminar">🗑️</a>
                 </td>
             </tr>
             {% endfor %}
@@ -62,9 +112,59 @@
     </table>
 </div>
 
+<div id="sinResultadosProductos" class="alert alert-info text-center py-4" style="display: none;">
+    <span class="fs-1">🔍</span>
+    <h5 class="mt-2">No se encontraron productos con esos criterios</h5>
+</div>
+
 <div class="text-center mt-4">
-    <a href="{{ url_for('index') }}" class="btn btn-secondary">⬅ Volver</a>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">⬅ Volver al Dashboard</a>
     <a href="{{ url_for('facturacion') }}" class="btn btn-primary">💰 Facturación</a>
 </div>
+
+<script>
+function filtrarProductos() {
+    const busqueda = document.getElementById('buscarProducto').value.toLowerCase().trim();
+    const categoria = document.getElementById('filtroCategoria').value.toLowerCase();
+    const disponibilidad = document.getElementById('filtroDisponibilidad').value.toLowerCase();
+    
+    const filas = document.querySelectorAll('.fila-producto');
+    let visibles = 0;
+    
+    filas.forEach(function(fila) {
+        const nombre = fila.dataset.nombre;
+        const capacidad = fila.dataset.capacidad;
+        const cat = fila.dataset.categoria;
+        const disp = fila.dataset.disponible;
+        
+        let mostrar = true;
+        
+        if (busqueda && !nombre.includes(busqueda) && !capacidad.includes(busqueda)) mostrar = false;
+        if (categoria && cat !== categoria) mostrar = false;
+        if (disponibilidad && disp !== disponibilidad) mostrar = false;
+        
+        if (mostrar) {
+            fila.style.display = '';
+            visibles++;
+        } else {
+            fila.style.display = 'none';
+        }
+    });
+    
+    document.getElementById('contadorProductos').textContent = visibles;
+    document.getElementById('sinResultadosProductos').style.display = visibles === 0 ? 'block' : 'none';
+}
+
+function limpiarFiltrosProductos() {
+    document.getElementById('buscarProducto').value = '';
+    document.getElementById('filtroCategoria').value = '';
+    document.getElementById('filtroDisponibilidad').value = '';
+    filtrarProductos();
+}
+
+document.getElementById('buscarProducto').addEventListener('input', filtrarProductos);
+document.getElementById('filtroCategoria').addEventListener('change', filtrarProductos);
+document.getElementById('filtroDisponibilidad').addEventListener('change', filtrarProductos);
+</script>
 
 {% endblock %}
